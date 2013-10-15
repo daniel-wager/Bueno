@@ -4,15 +4,15 @@
  *
  * @category Framework
  * @author Dan Wager
- * @copyright Copyright (c) 2007 Devmo
+ * @copyright Copyright (c) 2007
  * @version 1.0
  */
-namespace devmo\controllers;
+namespace bueno\controllers;
 
-class PoweredBy extends \devmo\controllers\Controller {
+class PoweredBy extends \bueno\controllers\Controller {
 
   public function run (array $args=null) {
-    return $this->getView('devmo.PoweredBy');
+    return $this->getView('bueno.PoweredBy');
   }
 
 }

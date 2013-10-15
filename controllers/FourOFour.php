@@ -4,11 +4,11 @@
  *
  * @category Framework
  * @author Dan Wager
- * @copyright Copyright (c) 2007 Devmo
+ * @copyright Copyright (c) 2007
  * @version 1.0
  */
-namespace devmo\controllers;
-class FourOFour extends \devmo\controllers\Controller {
+namespace bueno\controllers;
+class FourOFour extends \bueno\controllers\Controller {
 
   public function run (array $args=null) {
   	header("HTTP/1.0 404 Not Found");

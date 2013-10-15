@@ -12,5 +12,6 @@
   }
 </style>
 <div class="poweredby">
-  <span>Devmo</span><span class="poweredbyDevmo poweredbyPHP">PHP</span>
+  <span>Bueno</span>
+  <span class="poweredbyBueno poweredbyPHP">PHP + DVC</span>
 </div>

@@ -1,5 +1,5 @@
 <?php
-namespace devmo\exceptions;
+namespace bueno\exceptions;
 
-class UniqueException extends \devmo\exceptions\Exception {
+class UniqueException extends \bueno\exceptions\Exception {
 }

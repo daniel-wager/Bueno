@@ -1,6 +1,6 @@
 <?php
-namespace devmo\exceptions;
-class InvalidException extends \devmo\exceptions\Exception {
+namespace bueno\exceptions;
+class InvalidException extends \bueno\exceptions\Exception {
   private $name;
 	private $value;
 	private $options;
@@ -9,7 +9,7 @@ class InvalidException extends \devmo\exceptions\Exception {
 		$this->setValue($value);
 		$this->setOptions($options);
 		$message = $this->value ? "Invalid {$this->name}" : "Missing {$this->name}";
-		if (\devmo\Config::isDebug())
+		if (\bueno\Config::isDebug())
 			$message .= ($this->value?' value:"'.print_r($this->value,true).'"':'').($this->options?' options:"'.implode('","',$this->options).'"':null)." {$this->file}:{$this->line}";
     parent::__construct($message);
   }

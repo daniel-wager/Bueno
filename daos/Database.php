@@ -1,10 +1,10 @@
 <?php
-namespace devmo\daos;
+namespace bueno\daos;
 
-use \devmo\exceptions\CoreException;
-use \devmo\exceptions\InvalidException;
+use \bueno\exceptions\CoreException;
+use \bueno\exceptions\InvalidException;
 
-class Database extends \devmo\Dao {
+class Database extends \bueno\Dao {
 	public static $dbhs = array();
 	private $host;
 	private $name;
@@ -63,7 +63,7 @@ class Database extends \devmo\Dao {
 			return new ResultSetDatabaseDao($result);
 		if ($add) {
 			$id = $this->getConnection()->insert_id;
-			if ($add instanceof \devmo\Dto)
+			if ($add instanceof \bueno\Dto)
 				$add->setId($id);
 			return $id;
 		}

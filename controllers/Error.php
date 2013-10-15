@@ -1,14 +1,14 @@
 <?php
-namespace devmo\controllers;
+namespace bueno\controllers;
 /**
- * handler for all CoreExceptions
+ * default controller designed to display critical errors
  *
  * @category Framework
  * @author Dan Wager
- * @copyright Copyright (c) 2007 Devmo
+ * @copyright Copyright (c) 2007
  * @version 1.0
  */
-class Error extends \devmo\controllers\Controller {
+class Error extends \bueno\controllers\Controller {
 	public $exception;
 
   public function run (array $args=null) {
@@ -17,9 +17,9 @@ class Error extends \devmo\controllers\Controller {
 		foreach ($args as $k=>$v)
 			$message .= " {$k}:{$v}";
     // build wrapper
-    $error = $this->getView("devmo.views.{$this->exception->name}Error",$args);
-    $view = $this->getView('devmo.views.Error',array('body'=>$error,'trace'=>$this->exception->__toViewString()));
-    $wrap = $this->runController('devmo.SiteWrapper',array('title'=>'Problems!','body'=>$view));
+    $error = $this->getView("bueno.views.{$this->exception->name}Error",$args);
+    $view = $this->getView('bueno.views.Error',array('body'=>$error,'trace'=>$this->exception->__toViewString()));
+    $wrap = $this->runController('bueno.SiteWrapper',array('title'=>'Problems!','body'=>$view));
     return $wrap;
   }
 

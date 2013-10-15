@@ -1,7 +1,7 @@
 <?php
-namespace devmo\exceptions;
+namespace bueno\exceptions;
 
-class CoreException extends \devmo\exceptions\Exception {
+class CoreException extends \bueno\exceptions\Exception {
   public $name;
   public $tokens;
 

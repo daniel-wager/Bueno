@@ -1,3 +1,3 @@
 <?php
-namespace devmo\daos;
-abstract class Dao extends \devmo\Dao {}
+namespace bueno\daos;
+abstract class Dao extends \bueno\Dao {}

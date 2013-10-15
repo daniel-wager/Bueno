@@ -1,11 +1,11 @@
 <?php
-namespace devmo;
+namespace bueno;
 
-use \Devmo;
-use \devmo\exceptions\CoreException;
-use \devmo\exceptions\FileNotFoundCoreException;
-use \devmo\exceptions\FileTypeNotFoundCoreException;
-use \devmo\exceptions\InvalidException;
+use \Bueno;
+use \bueno\exceptions\CoreException;
+use \bueno\exceptions\FileNotFoundCoreException;
+use \bueno\exceptions\FileTypeNotFoundCoreException;
+use \bueno\exceptions\InvalidException;
 
 class Object {
 	public function __toString () {
@@ -133,7 +133,7 @@ class Core extends Object {
 			foreach (Config::getNamespacePathForType($type) as $xNamespace=>$xPath) {
 				if (preg_match("/^{$xNamespace}/",$context)>0) {
 					$xName = preg_replace('/[ _-]+/','',ucwords($matches[3]));
-					$xDir = preg_replace("/^{$xNamespace}/",$xPath,str_replace('.','/',$context)).($xNamespace=='devmo'?$type:$folder);
+					$xDir = preg_replace("/^{$xNamespace}/",$xPath,str_replace('.','/',$context)).($xNamespace=='bueno'?$type:$folder);
 					$xFile = $xDir.'/'.$xName.'.php';
 					if (is_file($xFile)) {
 						$fileBox->setFile($xFile);
@@ -162,10 +162,10 @@ class Core extends Object {
 		// check for parent class
 		$parentClass = null;
 		switch ($fileBox->getType()) {
-			case 'controllers': $parentClass = '\devmo\Controller'; break;
-			case 'views': $parentClass = '\devmo\View'; break;
-			case 'daos': $parentClass = '\devmo\Dao'; break;
-			case 'dtos': $parentClass = '\devmo\Dto'; break;
+			case 'controllers': $parentClass = '\bueno\Controller'; break;
+			case 'views': $parentClass = '\bueno\View'; break;
+			case 'daos': $parentClass = '\bueno\Dao'; break;
+			case 'dtos': $parentClass = '\bueno\Dto'; break;
 		}
 		if ($parentClass && !self::classExists($parentClass))
 			throw new CoreException('ClassNotFound',array('class'=>$parentClass,'file'=>$fileBox->getFile()));
@@ -232,7 +232,7 @@ class Core extends Object {
 		if (Config::isCli()) {
 			return Config::isDebug() ? (string)$e : $e->getMessage();
 		} else if (Config::isDebug()) {
-			$controller = self::load('devmo.controllers.Error','new');
+			$controller = self::load('bueno.controllers.Error','new');
 			$controller->setException($e);
 			return $controller->run($e->tokens);
 		} else {
@@ -299,7 +299,7 @@ class Config extends Object{
 			'libs'=>array(),
 			'includes'=>array());
 	private static $requestControllerMap = array();
-	private static $requestNotFoundController = 'devmo.controllers.FourOFour';
+	private static $requestNotFoundController = 'bueno.controllers.FourOFour';
 	private static $requestedController = null;
 	private static $defaultController = null;
 	private static $defaultNamespace = null;
@@ -316,7 +316,7 @@ class Config extends Object{
 	public static function addNamespacePathMapping ($namespace, $path, $default=false) {
 		foreach (self::$typeNamespacePathMap as $k=>$v)
 			self::$typeNamespacePathMap[$k][$namespace] = $path;
-		if ($default || (self::$defaultNamespace==null && $namespace!='devmo'))
+		if ($default || (self::$defaultNamespace==null && $namespace!='bueno'))
 			self::$defaultNamespace = $namespace;
 	}
 	public static function getPathForNamespace ($namespace, $type='controllers') {
@@ -511,7 +511,7 @@ abstract class Controller extends Loader {
 		if (!$path)
 			$path = basename(str_replace('\\','/',$this->getClass()));
 		$path = Core::formatPath($path,'views',$this->getContext());
-		return new \devmo\View($path,$tokens);
+		return new \bueno\View($path,$tokens);
 	}
 	protected static function getGet ($name, $default=false, $makeSafe=true) {
 		return (($value = self::getValue($name,$_GET,$default)) && $makeSafe)
@@ -530,7 +530,7 @@ abstract class Controller extends Loader {
 	}
 	protected static function getSession ($name, $default=false) {
 		if (!isset($_SESSION))
-			throw new \devmo\exceptions\Exception('session does not exist');
+			throw new \bueno\exceptions\Exception('session does not exist');
 		return self::getValue($name,$_SESSION,$default);
 	}
 	protected static function getServer ($name, $default=false) {
@@ -557,7 +557,7 @@ abstract class Controller extends Loader {
 		return $request;
 	}
 	protected function getRedirect ($url, $code = 302) {
-		return $this->getView('devmo.HttpRaw', array(
+		return $this->getView('bueno.HttpRaw', array(
 			'code' => $code,
 			'headers' => array("Location: {$url}")
 		));
@@ -584,7 +584,7 @@ class View extends Object {
 	}
 	public function __set ($name, $value) {
 		if ($value===$this)
-			throw new DevmoException('Token Value Is Circular Reference');
+			throw new BuenoException('Token Value Is Circular Reference');
 		if (is_object($value) && $value instanceof View)
 			$value->parent = $this;
 		$this->myTokens->{$name} = $value;
@@ -624,12 +624,12 @@ abstract class Logic extends Loader {}
 abstract class Library extends Object {}
 abstract class Dao extends Object {}
 
-abstract class Dto extends \devmo\Box {
+abstract class Dto extends \bueno\Box {
 	protected $id;
 	public function __construct ($record=null, $validate=false) {
 		if ($record!==null) {
 			if ($record!=null && !(is_object($record) || is_array($record)))
-				throw new \devmo\exceptions\Exception('record is not iterable');
+				throw new \bueno\exceptions\Exception('record is not iterable');
 			$fields = $this;
 			if ($validate)
 				$fields = array_intersect_key(
@@ -696,10 +696,10 @@ class Exception extends \LogicException {
 				.($this->path ? PHP_EOL."Path: {$this->path}" : null)
 				.($this->info ? PHP_EOL."Info: {$this->info}" : null)
 				.PHP_EOL."Where: ";
-		$devmoPath = Config::getPathForNamespace('devmo');
+		$buenoPath = Config::getPathForNamespace('bueno');
 		$trace = $this->getTrace();
 		foreach ($trace as $i=>$x) {
-			if (Devmo::getValue('class',$x)=='devmo\Core')
+			if (Bueno::getValue('class',$x)=='bueno\Core')
 				continue;
 			$args = array();
 			foreach ($x['args'] as $xa) {
@@ -720,11 +720,10 @@ class Exception extends \LogicException {
 	}
 }
 
-
 // check for magic quotes
 if (get_magic_quotes_gpc())
 	die("Magic Quotes Config is On... exiting.");
 // set default exception handler
-set_error_handler(array('\devmo\Core','handleError'));
-set_exception_handler(array('\devmo\Core','handleException'));
-spl_autoload_register(array('\devmo\Core','loadClass'),true);
+set_error_handler(array('\bueno\Core','handleError'));
+set_exception_handler(array('\bueno\Core','handleException'));
+spl_autoload_register(array('\bueno\Core','loadClass'),true);

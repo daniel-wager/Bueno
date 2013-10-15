@@ -1,4 +1,4 @@
 <?php
-namespace devmo\exceptions;
+namespace bueno\exceptions;
 
-class Exception extends \devmo\Exception {}
+class Exception extends \bueno\Exception {}

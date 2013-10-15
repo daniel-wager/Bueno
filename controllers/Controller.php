@@ -1,3 +1,3 @@
 <?php
-namespace devmo\controllers;
-abstract class Controller extends \devmo\Controller {}
+namespace bueno\controllers;
+abstract class Controller extends \bueno\Controller {}

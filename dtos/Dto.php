@@ -1,3 +1,3 @@
 <?php
-namespace devmo\dtos;
-abstract class Dto extends \devmo\Dto {}
+namespace bueno\dtos;
+abstract class Dto extends \bueno\Dto {}
