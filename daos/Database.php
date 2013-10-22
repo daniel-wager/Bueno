@@ -5,233 +5,107 @@ use \bueno\exceptions\CoreException;
 use \bueno\exceptions\InvalidException;
 
 class Database extends \bueno\Dao {
-	public static $dbhs = array();
-	private $host;
-	private $name;
+	private static $connections = array();
+	private $connectionKey;
+	private $connectionDsn;
+	private $persistant = false;
 	private $user;
 	private $pass;
-	private $port;
-	private $record;
-	private $records;
-	private $iterator;
-
-	public function __construct ($host, $user, $pass, $name=null, $port=null) {
+	public function __construct ($dsn, $user, $pass, $persistant=false) {
 		if (!defined('DATABASE_DATE_FORMAT'))
 			define('DATABASE_DATE_FORMAT','Y-m-d');
-		if (!defined('DATABASE_DATE_FIRST_FORMAT'))
-			define('DATABASE_DATE_FIRST_FORMAT','Y-m-01');
 		if (!defined('DATABASE_DATETIME_FORMAT'))
 			define('DATABASE_DATETIME_FORMAT','Y-m-d H:i:s');
-		$this->host = $host;
+		$this->persistant = (bool) $persistant;
 		$this->user = $user;
 		$this->pass = $pass;
-		$this->name = $name;
-		$this->port = $port ? (int) $port : null;
-		$this->dbk = "{$this->host}".($this->port?":{$this->port}":'').";{$this->user}".($this->name?";{$this->name}":'');
+		$this->connectionDsn = $dsn;
+		$this->connectionKey = "{$this->connectionDsn}:{$this->user}:{$this->persistant}";
 	}
-
-	protected function getConnection () {
-		if (!($dbh = self::getDbh($this->dbk))) {
-			$dbh = new \mysqli($this->host,$this->user,$this->pass,$this->name,$this->port);
-			if ($dbh->connect_error)
-				throw new CoreException('Database',array('errno'=>$dbh->connect_errno,'error'=>$dbh->connect_error));
-			self::setDbh($this->dbk,$dbh);
-			if ($this->name!=null)
-				$this->useSchema($this->name);
+	protected function getPdo () {
+		if (!($pdo = self::getValue($this->connectionKey,self::$connections))) {
+			try {
+				$pdo = new \PDO(
+					$this->connectionDsn,
+					$this->user,
+					$this->pass,
+					array(
+						\PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,
+						\PDO::ATTR_PERSISTENT=>$this->persistant,
+						\PDO::ATTR_STATEMENT_CLASS=>'ResultSet',
+						\PDO::ATTR_DEFAULT_FETCH_MODE=>\PDO::FETCH_OBJ));
+				//$pdo->setAttribute(\PDO::ATTR_STATEMENT_CLASS,array('ResultSet',array($pdo)));
+				self::$connections[$this->connectionKey] = $pdo;
+			} catch (\PDOException $e) {
+				throw new CoreException('Database',array('error'=>$e->getMessage()));
+			}
 		}
-		return $dbh;
+		return self::$connections[$this->connectionKey];
 	}
-
 	protected function useSchema ($name) {
-		$this->name = $name;
-		$this->getConnection()->select_db($name);
+		return $this->getPdo()->exec("USE `{$name}`;");
 	}
-
 	protected function disconnect () {
-		if (self::getDbh($this->dbk))
-			self::getDbh($this->dbk)->close();
-		return true;
+		self::$connections[$this->connectionKey] = null;
+		unset(self::$connections[$this->connectionKey]);
 	}
-
-	protected function query ($sql, $add=null, $debug=false) {
-		if ($debug)
-			self::debug($sql,'Database::query::sql');
-		$dbh = $this->getConnection();
-		if (!$result = $dbh->query($sql))
-			throw new CoreException('Database',array('errorno'=>$dbh->errno,'error'=>$dbh->error.PHP_EOL.preg_replace('=\s+=',' ',$sql)));
-		if ($result instanceof \mysqli_result)
-			return new ResultSetDatabaseDao($result);
-		if ($add) {
-			$id = $this->getConnection()->insert_id;
-			if ($add instanceof \bueno\Dto)
-				$add->setId($id);
-			return $id;
-		}
-		return true;
-	}
-
-	protected function formatDate ($date=null, $nullable=true, $first=false) {
-		if ($date===null) {
-			if (!$nullable)
-				throw new InvalidException('Date');
-			return 'NULL';
-		}
+	protected function formatDate ($date=null, $time=true) {
+		if ($date===null)
+			return null;
 		if ($date instanceof \DateTime)
-			return '\''.$date->format(($first?DATABASE_DATE_FIRST_FORMAT:DATABASE_DATE_FORMAT)).'\'';
+			return $date->format(($time?DATABASE_DATETIME_FORMAT:DATABASE_DATE_FORMAT));
 		if (!($date = strtotime($date)))
-				throw new InvalidException('Date');
-		return "'".date(($first?DATABASE_DATE_FIRST_FORMAT:DATABASE_DATE_FORMAT),$date)."'";
+			throw new InvalidException('Date');
+		return date(($time?DATABASE_DATETIME_FORMAT:DATABASE_DATE_FORMAT),$date);
   }
-
-	protected function formatDateTime ($dateTime=null, $nullable=true) {
-		if ($dateTime===null) {
-			if (!$nullable)
-				throw new InvalidException('DateTime');
-			return 'NULL';
-		}
-		if ($dateTime instanceof \DateTime)
-			return '\''.$dateTime->format(DATABASE_DATETIME_FORMAT).'\'';
-		if (!($dateTime = strtotime($dateTime)))
-				throw new InvalidException('DateTime');
-		return "'".date(DATABASE_DATETIME_FORMAT,$dateTime)."'";
-  }
-
-	protected function formatNumber ($number=null, $nullable=true) {
-		if (($number===null && !$nullable) || ($number!==null && !is_numeric($number)))
+	protected function formatNumber ($number=null) {
+		if ($number===null)
+			return null;
+		if (!is_numeric($number))
 			throw new InvalidException('number',$number);
-		return $number===null ? 'NULL' : $number;
+		return $number;
   }
-
-	protected function formatBoolean ($boolean=null, $nullable=true) {
-		if (($boolean===null && !$nullable) || ($boolean!==null && !is_bool($boolean)))
+	protected function formatBoolean ($boolean=null) {
+		if ($boolean===null)
+			return null;
+		if (!is_bool($boolean))
 			throw new InvalidException('boolean',$boolean);
-		return ($boolean===null ? 'NULL' : ($boolean ? '1' : '0'));
+		return $boolean;
   }
-
-	protected function formatText ($text=null, $nullable=true) {
-		if (!$nullable && $text===null)
-			throw new InvalidException('text',$text);
-		return $text===null ? 'NULL' : "'".$this->getConnection()->real_escape_string($text)."'";
-  }
-
-	public static function getDbh ($dbhKey) {
-		return empty(self::$dbhs[$dbhKey])
-			? false
-			: self::$dbhs[$dbhKey];
-	}
-
-	public static function setDbh ($dbhKey,$dbh) {
-		self::$dbhs[$dbhKey] = $dbh;
-	}
-
 }
 
-
-class ResultSetDatabaseDao implements \Iterator, \Countable {
-	private $dto = null;
-	private $result = null;
+class ResultSet extends \PDOStatement {
 	private $position = 0;
 	private $count = 0;
-
-	public function __construct ($result) {
-		if (!($result instanceof \mysqli_result))
-			throw new InvalidException('db query resource',$result);
-		$this->result = $result;
-		$this->position = 0;
-	}
-
-	function __destruct () {
-		$this->result->free_result();
-	}
-
-	public function setDto ($dto) {
-		$this->dto = $dto;
-		return $this;
-	}
-
 	public function setCount ($count) {
 		$this->count = $count;
 		return $this;
 	}
-
-	function rewind () {
-		$this->position = 0;
-		if ($this->count()>0)
-			$this->result->data_seek($this->position);
-	}
-
-	function current () {
-		return $this->getObject();
-	}
-
-	function key () {
-		return $this->position;
-	}
-
-	function next () {
-		$this->position++;
-	}
-
-	function valid () {
-		return $this->result->data_seek($this->position);
-	}
-
-	public function count () {
-		if (!$this->count)
-			$this->count = empty($this->result->num_rows) ? 0 : $this->result->num_rows;
+	public function getCount () {
 		return $this->count;
 	}
-
-	function getFields () {
-		return $this->result->fetch_fields();
-	}
-
 	function getValue () {
-		if ($x = $this->result->fetch_array())
-			return $x[0];
-		return false;
+		return $this->fetchColumn(0);
 	}
-
 	function getList () {
-		$this->rewind();
 		$list = array();
-		while ($x = $this->result->fetch_array())
+		while (($x = $this->fetchAll(\PDO::FETCH_NUM)))
 			$list[] = $x[0];
-		$this->rewind();
 		return $list;
 	}
-
 	function getMap () {
-		$map = array();
-		$this->rewind();
-		while ($x = $this->result->fetch_array())
-			$map[$x[0]] = $x[1];
-		return $map;
+		$list = array();
+		while (($x = $this->fetchAll(\PDO::FETCH_NUM)))
+			$list[0] = $x[1];
+		return $list;
 	}
-	function getHash () { return $this->getMap(); }
-
 	function getObject () {
-		return ($x = $this->result->fetch_object()) ? $this->dto ? new $this->dto($x) : $x : false;
+		return $this->fetch(\PDO::FETCH_OBJ);
 	}
-
 	function getObjects () {
-		$objs = array();
-		$this->rewind();
-		while ($x = $this->getObject())
-			$objs[] = $x;
-		return $objs;
+		return $this->fetchAll(\PDO::FETCH_OBJ);
 	}
-
-	function getRow () {
-		return ($x = $this->result->fetch_row()) ? $this->dto ? new $this->dto($x) : $x : false;
+	function getArray ($associative=true, $numeric=false) {
+		return $this->fetch(($associative&&$numeric?\PDO::FETCH_BOTH:($associative||!$numeric?\PDO::FETCH_ASSOC:\PDO::FETCH_NUM)));
 	}
-
-	function getArray () {
-		if (($x = $this->result->fetch_array()))
-			foreach ($x as $k=>$v)
-				if (is_int($k))
-					unset($x[$k]);
-		return $x ? $this->dto ? new $this->dto($x) : $x : false;
-	}
-
 }

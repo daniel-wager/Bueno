@@ -55,9 +55,6 @@ class Object {
 		}
 		throw new InvalidException('haystack',$haystack,array('array','object','null'));
 	}
-	public static function classExists ($class) {
-		return class_exists($class, false) || interface_exists($class, false);
-	}
 	public static function logError ($message) {
 		($logFile = Config::getErrorLog())
 			? error_log(date('Y-m-d H:i:s')."\t{$message}\n",3,$logFile)
@@ -65,51 +62,9 @@ class Object {
 	}
 }
 
-class Core extends Object {
+class Factory extends Object {
 	private static $fileBoxes = array();
-	public static function execute ($path=false, $args=null, Controller $caller=null) {
-		// find controller
-		if (!($controller = $path) && Config::getRequestedController()) {
-			$controller = Config::getRequestedController();
-			// find mapped controller
-			if (Config::hasRequestControllerMap()) {
-				foreach (Config::getRequestControllerMap() as $pattern=>$useController) {
-					if (preg_match($pattern,$controller)) {
-						$controller = $useController;
-						break;
-					}
-				}
-			}
-		}
-		if (!$controller || $controller === '/') {
-			$controller = Config::getDefaultController();
-		}
-		// set up clli args
-		if (!$args && !$caller && Config::isCli())
-			$args = self::getValue('argv',$_SERVER);
-		//	get controller view
-		if (!$view = self::executeController($controller,$args,null,$caller))
-			throw new CoreException('ViewNotFound',array('controller'=>$controller));
-		return $view;
-	}
-
-	private static function executeController ($path, array $args=null, $message=null, Controller $caller=null) {
-		//  get controller object
-		$controller = self::load($path,'new');
-		if ($message)
-			$controller->setMessage($message);
-		if ($caller)
-			$controller->setCaller($caller);
-		//	run controller
-		$view = $controller->run($args);
-		//  forward to next controller
-		if ($controller->getForward())
-			return self::executeController($controller->getForward(),$args,$message,$caller);
-		// return only views
-		return $view instanceof View ? $view : null;
-	}
-
-	public static function load ($path, $option='filebox', $args=null) {
+	public static function build ($path, $option='filebox', $args=null) {
 		if (!$path)
 			throw new InvalidException($path,'path');
 		// allow paths with ns seperator
@@ -139,6 +94,7 @@ class Core extends Object {
 						$fileBox->setFile($xFile);
 						break;
 					}
+					break;
 				}
 			}
 			if ($xFile==null)
@@ -195,7 +151,53 @@ class Core extends Object {
 			$obj->setFileBox($fileBox);
 		return $option=='static' ? true : $obj;
 	}
+	protected static function classExists ($class) {
+		return class_exists($class,false) || interface_exists($class,false) || trait_exists($class,false);
+	}
+}
 
+class Core extends Object {
+	public static function execute ($path=false, $args=null, Controller $caller=null, $parentClass=null) {
+		// find controller
+		if (!($controller = $path) && Config::getRequestedController()) {
+			$controller = Config::getRequestedController();
+			// find mapped controller
+			if (Config::hasRequestControllerMap()) {
+				foreach (Config::getRequestControllerMap() as $pattern=>$useController) {
+					if (preg_match($pattern,$controller)) {
+						$controller = $useController;
+						break;
+					}
+				}
+			}
+		}
+		if (!$controller || $controller === '/')
+			$controller = Config::getDefaultController();
+		// set up clli args
+		if (!$args && !$caller && Config::isCli())
+			$args = self::getValue('argv',$_SERVER);
+		//	get controller view
+		if (!$view = self::executeController($controller,$args,null,$caller,$parentClass))
+			throw new CoreException('ViewNotFound',array('controller'=>$controller));
+		return $view;
+	}
+	private static function executeController ($path, array $args=null, $message=null, Controller $caller=null, $parentClass=null) {
+		//  get controller object
+		$controller = Factory::build($path,'new');
+		if ($parentClass && !($controller instanceof $parentClass))
+			throw new CoreException('ClassNotParentClass',array('class'=>$controller->getInfo('class'),'parent'=>$parentClass, 'file'=>$controller->getFile()));
+		if ($message)
+			$controller->setMessage($message);
+		if ($caller)
+			$controller->setCaller($caller);
+		//	run controller
+		$view = $controller->run($args);
+		//  forward to next controller
+		if ($controller->getForward())
+			return self::executeController($controller->getForward(),$args,$message,$caller);
+		// return only views
+		return $view instanceof View ? $view : null;
+	}
 	public static function makeSafe ($value) {
 		if (is_array($value)) {
 			foreach ($value as $k=>$v) {
@@ -206,7 +208,6 @@ class Core extends Object {
 			return htmlentities(trim($value),ENT_NOQUOTES);
 		}
 	}
-
 	public static function handleError ($number, $message, $file=null, $line=null, array $context=null) {
 		//256	E_USER_ERROR	512	E_USER_WARNING	1024	E_USER_NOTICE
 		// log it
@@ -214,42 +215,35 @@ class Core extends Object {
 		// use default error handler for everything else
 		return false;
 	}
-
 	public static function handleException (\Exception $e) {
 		// log it
 		self::logError($e);
 		// display it
 		if ($e instanceof CoreException) {
-			echo self::handleCoreException($e);
+			if (Config::isCli()) {
+				echo Config::isDebug() ? (string)$e : $e->getMessage();
+			} else if (Config::isDebug()) {
+				$controller = Factory::build('bueno.controllers.Error','new');
+				$controller->setException($e);
+				echo $controller->run($e->tokens);
+			} else {
+				echo self::execute(Config::getRequestNotFoundController())->getRoot();
+			}
 		} else {
 			Config::isDebug()
 				? self::debug($e->__toString(),'log entry')
 				: self::debug($e->getMessage(),'See the error log for more details');
 		}
 	}
-
-	public static function handleCoreException (CoreException $e) {
-		if (Config::isCli()) {
-			return Config::isDebug() ? (string)$e : $e->getMessage();
-		} else if (Config::isDebug()) {
-			$controller = self::load('bueno.controllers.Error','new');
-			$controller->setException($e);
-			return $controller->run($e->tokens);
-		} else {
-			return self::execute(Config::getRequestNotFoundController())->getRoot();
-		}
-	}
-
   public static function loadClass ($class) {
     try {
-      return self::load($class,'static');
+      return Factory::build($class,'static');
     } catch (\Exception $e) {
       return !(($e instanceof FileNotFoundCoreException || $e instanceof FileTypeNotFoundCoreException) && count(spl_autoload_functions())>1)
 				? self::handleException($e)
 				: false;
     }
   }
-
 	public static function formatPath ($path, $type, $context=null) {
 		if (!is_string($path) || !preg_match('/^(?P<path>.*?\.)?(?P<type>[^\.]+\.)?(?P<class>[^\.]+)$/',$path,$parts))
 			throw new InvalidException('path',$path);
@@ -263,20 +257,17 @@ class Core extends Object {
 		}
 		return $parts['path'].$parts['type'].$parts['class'];
 	}
-
 	public static function formatRequestToPath ($request) {
 		return preg_match('=(.*?)/?([^/]+)/?$=',$request,$matches)
 				? str_replace('/','.',$matches[1].'.controllers.'.str_replace(' ','',ucwords(preg_replace('/[\-\+]+/',' ',$matches[2]))))
 				: false;
 	}
-
 	public static function formatControllerToRequest ($controller) {
 		return Config::getRequestBase().preg_replace(
 				array('/^'.Config::getDefaultNamespace().'/','/controllers?\./','/\.+/','/^([^\/]{1})/'),
 				array('','','/','/\1'),
 				$controller);
 	}
-
 }
 
 class Config extends Object{
@@ -311,9 +302,11 @@ class Config extends Object{
 	public static function init () {
 		self::$cli = (bool) self::getValue('SHELL',$_SERVER,false);
 	}
-
 	# for application use
-	public static function addNamespacePathMapping ($namespace, $path, $default=false) {
+	public static function setDefaultNamespace ($namespace, $path) {
+		self::addNamespace($namespace,$path,true);
+	}
+	public static function addNamespace ($namespace, $path, $default=false) {
 		foreach (self::$typeNamespacePathMap as $k=>$v)
 			self::$typeNamespacePathMap[$k][$namespace] = $path;
 		if ($default || (self::$defaultNamespace==null && $namespace!='bueno'))
@@ -326,9 +319,6 @@ class Config extends Object{
 	}
 	public static function addRequestControllerMapping ($pattern, $controller) {
 		self::$requestControllerMap[$pattern] = $controller;
-	}
-	public static function setDefaultNamespace ($namespace) {
-		self::$defaultNamespace = $namespace;
 	}
 	public static function setDefaultController ($controller) {
 		self::$defaultController = Core::formatPath($controller,'controllers');
@@ -462,24 +452,18 @@ class FileBox extends Box {
 }
 
 class Loader extends Object {
-	private $fb = null;
-	protected function get ($path, $args=null, $option='auto') {
-		return Core::load(($path && substr($path,0,1)=='.' ? $this->getContext().substr($path,1) : $path),$option,$args);
+	protected $fileBox = null;
+	protected function build ($path, $args=null, $option='auto') {
+		return Factory::build(($path && substr($path,0,1)=='.' ? $this->fileBox->getContext().substr($path,1) : $path),$option,$args);
 	}
 	protected function exists ($path) {
-		return Core::load(($path && substr($path,0,1)=='.' ? $this->getContext().substr($path,1) : $path),'check');
+		return Factory::build(($path && substr($path,0,1)=='.' ? $this->fileBox->getContext().substr($path,1) : $path),'check');
 	}
 	public function setFileBox (FileBox $fileBox) {
-		$this->fb = $fileBox;
+		$this->fileBox = $fileBox;
 	}
-	public function getClass () {
-		return $this->fb->getClass();
-	}
-	public function getContext () {
-		return $this->fb->getContext();
-	}
-	public function getPath () {
-		return $this->fb->getPath();
+	public function getInfo ($type=null) {
+		return $this->fileBox->{"get".ucfirst($type)}();
 	}
 }
 
@@ -490,7 +474,7 @@ abstract class Controller extends Loader {
 	private $caller = null;
 
 	public function setForward ($controller) {
-		$this->forward = Core::formatPath($controller,'controllers',$this->getContext());
+		$this->forward = Core::formatPath($controller,'controllers',$this->fileBox->getContext());
 	}
 	public function getForward () {
 		return $this->forward;
@@ -509,8 +493,8 @@ abstract class Controller extends Loader {
 	}
 	protected function getView ($path=null, $tokens=null) {
 		if (!$path)
-			$path = basename(str_replace('\\','/',$this->getClass()));
-		$path = Core::formatPath($path,'views',$this->getContext());
+			$path = basename(str_replace('\\','/',$this->fileBox->getClass()));
+		$path = Core::formatPath($path,'views',$this->fileBox->getContext());
 		return new \bueno\View($path,$tokens);
 	}
 	protected static function getGet ($name, $default=false, $makeSafe=true) {
@@ -542,16 +526,16 @@ abstract class Controller extends Loader {
 	protected function getRequestController () {
 		return Config::getRequestedController() ?: Config::getDefaultController();
 	}
-	protected function runController ($controller, $args=null) {
-		return Core::execute(Core::formatPath($controller,'controllers',$this->getContext()),$args,$this);
+	protected function runController ($controller, $args=null, $parentClass=null) {
+		return Core::execute(Core::formatPath($controller,'controllers',$this->fileBox->getContext()),$args,$this,$parentClass);
 	}
 	protected function runRequest ($request, $args=null) {
 		return Core::execute(Core::formatRequestToPath($request),$args,$this);
 	}
 	protected function formatRequest ($controller=null, array $get=null) {
 		$request = $controller===null
-				? Core::formatControllerToRequest($this->getPath())
-				: Core::formatControllerToRequest(Core::formatPath($controller,'controller',$this->getContext()));
+				? Core::formatControllerToRequest($this->fileBox->getPath())
+				: Core::formatControllerToRequest(Core::formatPath($controller,'controller',$this->fileBox->getContext()));
 		if ($get)
 			$request .= '?'.http_build_query($get);
 		return $request;
@@ -595,7 +579,7 @@ class View extends Object {
 	public function __toString () {
 		ob_start();
 		try {
-			require(Core::load($this->myPath,'filebox')->getFile());
+			require(Factory::build($this->myPath,'filebox')->getFile());
 		} catch (\Exception $e) {
 			Core::handleException($e);
 		}
@@ -625,7 +609,6 @@ abstract class Library extends Object {}
 abstract class Dao extends Object {}
 
 abstract class Dto extends \bueno\Box {
-	protected $id;
 	public function __construct ($record=null, $validate=false) {
 		if ($record!==null) {
 			if ($record!=null && !(is_object($record) || is_array($record)))
@@ -636,17 +619,8 @@ abstract class Dto extends \bueno\Box {
 						(is_object($record) ? get_object_vars($record) : $record),
 						get_object_vars($this));
 			foreach ($fields as $k=>$v)
-				$validate ? $this->__set($k, self::getValue($k,$record)) : $this->{$k} = self::getValue($k,$record);
+				$validate ? $this->__set($k,self::getValue($k,$record)) : $this->{$k} = self::getValue($k,$record);
 		}
-	}
-	// TODO remove (get|set)Id to not enforce pk policy
-	public function setId ($id) {
-		if (!preg_match('/^\d+$/',$id))
-			throw new InvalidException('id',$id);
-		$this->id = $id;
-	}
-	public function getId () {
-		return $this->id;
 	}
 }
 

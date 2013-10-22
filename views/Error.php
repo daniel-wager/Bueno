@@ -1,14 +1,14 @@
 <style>
 h1,h2 {
 	font: bold 15px arial;
-	color: #660000;
+	color: #600;
 }
 h2 {
 	font-size: 12px;
 }
 div, p, li, td, pre, label {
 	font: normal 12px arial;
-	color: #660000;
+	color: #600;
 }
 label {
 	font-size: 11px;
@@ -20,7 +20,7 @@ div,pre {
 }
 .trace {
 	font: normal 10px arial;
-	color: #550000;
+	color: #500;
 }
 div.header {
 	white-space: nowrap;
