@@ -1,19 +1,19 @@
 <?php
-namespace com\uflic\api;
+namespace com\company\project;
 
 // load and use
 require_once '.bueno/Bueno.php';
 use \bueno\Config;
 
 // setup paths
-Config::addNamespace('com.company.www','.www',true);
-//Config::addNamespace('com.company.projectA','.projectA');
+Config::addNamespace('com.company.project','.project',true);
+//Config::addNamespace('com.company.project2','.project2');
 
 // setup controllers
-Config::setDefaultController('com.company.www.controllers.home');
+Config::setDefaultController('com.company.project.controllers.home');
 
 // setup routes
-//Config::addRequestControllerMapping('=^/blog=','com.company.www.content.controllers.blog');
+//Config::addRequestControllerMapping('=^/blog=','com.company.project.content.controllers.blog');
 
 // debug flag
 Config::setDebug(true);
