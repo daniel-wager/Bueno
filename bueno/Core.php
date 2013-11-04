@@ -512,9 +512,9 @@ abstract class Controller extends Loader {
 			? Core::makeSafe($value)
 			: $value;
 	}
-	protected static function getSession ($name, $default=false) {
-		if (!isset($_SESSION))
-			throw new \bueno\exceptions\Exception('session does not exist');
+	protected static function getSession ($name, $default=false, $autoStart=false) {
+		if (!session_id() && (!$autoStart || !session_start()))
+			throw new InvalidException('Session',session_id());
 		return self::getValue($name,$_SESSION,$default);
 	}
 	protected static function getServer ($name, $default=false) {
