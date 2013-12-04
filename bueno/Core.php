@@ -21,8 +21,9 @@ class Object {
 				Config::isCli() ? fgets(STDIN) : trigger_error("'{$option}' is only used in cli mode",E_USER_WARNING);
 				break;
 			case 'trace':
+				$buffer = '';
 				foreach (debug_backtrace() as $i=>$x) {
-					$buffer = $args = '';
+					$args = '';
 					if (is_array(self::getValue('args',$x)))
 						foreach ($x['args'] as $xarg)
 							$args .= ($args ? "," : '').(is_array($xarg) ? 'array(..)' : $xarg);
