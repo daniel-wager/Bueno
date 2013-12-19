@@ -32,12 +32,12 @@ class Database extends \bueno\Dao {
 					array(
 						\PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,
 						\PDO::ATTR_PERSISTENT=>$this->persistant,
-						\PDO::ATTR_STATEMENT_CLASS=>'ResultSet',
+						\PDO::ATTR_STATEMENT_CLASS=>array('\bueno\daos\ResultSet'),
 						\PDO::ATTR_DEFAULT_FETCH_MODE=>\PDO::FETCH_OBJ));
 				//$pdo->setAttribute(\PDO::ATTR_STATEMENT_CLASS,array('ResultSet',array($pdo)));
 				self::$connections[$this->connectionKey] = $pdo;
 			} catch (\PDOException $e) {
-				throw new CoreException('Database',array('error'=>$e->getMessage()));
+				throw new CoreException('Database',array('error'=>"{$e->getMessage()} [{$e->getFile()}:{$e->getLine()}]"));
 			}
 		}
 		return self::$connections[$this->connectionKey];
@@ -49,9 +49,12 @@ class Database extends \bueno\Dao {
 		self::$connections[$this->connectionKey] = null;
 		unset(self::$connections[$this->connectionKey]);
 	}
+	protected function formatText ($text) {
+		return $this->getPdo()->quote($text);
+	}
 	protected function formatDate ($date=null, $time=true) {
 		if ($date===null)
-			return null;
+			return 'NULL';
 		if ($date instanceof \DateTime)
 			return $date->format(($time?DATABASE_DATETIME_FORMAT:DATABASE_DATE_FORMAT));
 		if (!($date = strtotime($date)))
@@ -60,14 +63,14 @@ class Database extends \bueno\Dao {
   }
 	protected function formatNumber ($number=null) {
 		if ($number===null)
-			return null;
+			return 'NULL';
 		if (!is_numeric($number))
 			throw new InvalidException('number',$number);
 		return $number;
   }
 	protected function formatBoolean ($boolean=null) {
 		if ($boolean===null)
-			return null;
+			return 'NULL';
 		if (!is_bool($boolean))
 			throw new InvalidException('boolean',$boolean);
 		return $boolean;
