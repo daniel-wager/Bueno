@@ -524,7 +524,7 @@ abstract class Controller extends Loader {
 	protected static function getCookie ($name, $default=false) {
 		return self::getValue($name,$_COOKIE,$default);
 	}
-	protected function getRequestController () {
+	protected static function getRequestController () {
 		return Config::getRequestedController() ?: Config::getDefaultController();
 	}
 	protected function runController ($controller, $args=null, $parentClass=null) {
