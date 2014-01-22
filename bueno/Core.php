@@ -47,13 +47,12 @@ class Object {
 	public static function getValue ($needle, $haystack, $default=null) {
 		if ($haystack===null)
 			return $default;
+		if (empty($needle) || !is_scalar($needle))
+			throw new InvalidException('needle',$needle);
 		if (is_array($haystack))
 			return isset($haystack[$needle]) ? $haystack[$needle] : $default;
-		if (is_object($haystack)) {
-			if ($needle===null)
-				throw new InvalidException('needle',$needle);
+		if (is_object($haystack))
 			return isset($haystack->{$needle}) ? $haystack->{$needle} : $default;
-		}
 		throw new InvalidException('haystack',$haystack,array('array','object','null'));
 	}
 	public static function logError ($message) {
@@ -251,6 +250,8 @@ class Core extends Object {
 		$parts += array('path'=>null,'type'=>null,'class'=>null);
 		if ($parts['path']==null || $parts['path']=='.')
 			$parts['path'] = $context;
+		else if ($parts['path']=='..')
+			$parts['path'] = preg_replace('/^(.*\.)[^\.]+\.$/','\1',$context);
 		$type .= '.';
 		if ($parts['type']!=$type) {
 			$parts['path'] .= $parts['type'];
