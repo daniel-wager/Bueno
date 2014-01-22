@@ -398,12 +398,27 @@ class Config extends Object{
 	}
 }
 
-class Box extends Object {
-	public function __set ($name, $value) {
+class Box extends Object implements \JsonSerializable {
+	public function __construct ($properties=null) {
+		if ($properties) {
+			if (!is_array($properties) && !is_object($properties))
+				throw new InvalidException('properties',$properties,array('object','array'));
+			foreach ($this as $k=>$v)
+				$this->__set($k,self::getValue($k,self::getValue($k,$properties)));
+		}
+	}
+	public function __set ($name, $value=null) {
+		if (empty($name) || !is_string($name))
+			throw new InvalidException('name',$name,'type string');
 		return $this->{'set'.ucfirst($name)}($value);
 	}
 	public function __get ($name) {
+		if (empty($name) || !is_string($name))
+			throw new InvalidException('name',$name,'type string');
 		return $this->{'get'.ucfirst($name)}();
+	}
+	public function jsonSerialize () {
+		return get_object_vars($this);
 	}
 }
 
@@ -611,20 +626,18 @@ abstract class Dao extends Object {}
 
 abstract class Dto extends \bueno\Box {
 	public function __construct ($record=null, $validate=false) {
-		if ($record!==null) {
-			if ($record!=null && !(is_object($record) || is_array($record)))
-				throw new \bueno\exceptions\Exception('record is not iterable');
-			$fields = $this;
-			if ($validate)
-				$fields = array_intersect_key(
-						(is_object($record) ? get_object_vars($record) : $record),
-						get_object_vars($this));
-			foreach ($fields as $k=>$v)
-				$validate ? $this->__set($k,self::getValue($k,$record)) : $this->{$k} = self::getValue($k,$record);
+		if ($record) {
+			if ($validate) {
+				parent::__construct($record);
+			} else {
+				if (!is_object($record) && !is_array($record))
+					throw new InvalidException('record type',$record,array('array','object'));
+				foreach ($this as $k=>$v)
+					$this->{$k} = self::getValue($k,$record);
+			}
 		}
 	}
 }
-
 
 class Exception extends \LogicException {
 	private $path;
