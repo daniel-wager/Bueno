@@ -49,7 +49,9 @@ class Database extends \bueno\Dao {
 		self::$connections[$this->connectionKey] = null;
 		unset(self::$connections[$this->connectionKey]);
 	}
-	protected function formatText ($text) {
+	protected function formatText ($text=null) {
+		if ($text===null)
+			return 'NULL';
 		return $this->getPdo()->quote($text);
 	}
 	protected function formatDate ($date=null, $time=true) {
@@ -68,12 +70,12 @@ class Database extends \bueno\Dao {
 			throw new InvalidException('number',$number);
 		return $number;
   }
-	protected function formatBoolean ($boolean=null) {
-		if ($boolean===null)
+	protected function formatBool ($bool=null) {
+		if ($bool===null)
 			return 'NULL';
-		if (!is_bool($boolean))
-			throw new InvalidException('boolean',$boolean);
-		return $boolean;
+		if (!is_bool($bool))
+			throw new InvalidException('bool',$bool);
+		return $bool ? 1 : 0;
   }
 }
 
