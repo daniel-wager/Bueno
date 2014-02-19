@@ -56,9 +56,9 @@ class Object {
 		throw new InvalidException('haystack',$haystack,array('array','object','null'));
 	}
 	public static function logError ($message) {
-		($logFile = Config::getErrorLog())
-			? error_log(date('Y-m-d H:i:s')."\t{$message}\n",3,$logFile)
-			: error_log(date('Y-m-d H:i:s')."\t{$message}\n",0);
+		Config::getErrorLog()
+			? error_log(date('Y-m-d H:i:s')."\t{$message}\n",3,Config::getErrorLog())
+			: error_log(date('Y-m-d H:i:s')."\t{$message}\n");
 	}
 }
 
