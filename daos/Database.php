@@ -1,9 +1,10 @@
 <?php
 namespace bueno\daos;
-
+use \PDO;
+use \PDOException;
+use \PDOStatement;
 use \bueno\exceptions\CoreException;
 use \bueno\exceptions\InvalidException;
-
 class Database extends \bueno\Dao {
 	private static $connections = array();
 	private $connectionKey;
@@ -25,18 +26,17 @@ class Database extends \bueno\Dao {
 	protected function getPdo () {
 		if (!($pdo = self::getValue($this->connectionKey,self::$connections))) {
 			try {
-				$pdo = new \PDO(
+				$pdo = new PDO(
 					$this->connectionDsn,
 					$this->user,
 					$this->pass,
 					array(
-						\PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,
-						\PDO::ATTR_PERSISTENT=>$this->persistant,
-						\PDO::ATTR_STATEMENT_CLASS=>array('\bueno\daos\ResultSet'),
-						\PDO::ATTR_DEFAULT_FETCH_MODE=>\PDO::FETCH_OBJ));
-				//$pdo->setAttribute(\PDO::ATTR_STATEMENT_CLASS,array('ResultSet',array($pdo)));
+						PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+						PDO::ATTR_PERSISTENT=>$this->persistant,
+						PDO::ATTR_STATEMENT_CLASS=>array('\bueno\daos\ResultSet'),
+						PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_OBJ));
 				self::$connections[$this->connectionKey] = $pdo;
-			} catch (\PDOException $e) {
+			} catch (PDOException $e) {
 				throw new CoreException('Database',array('error'=>"{$e->getMessage()} [{$e->getFile()}:{$e->getLine()}]"));
 			}
 		}
@@ -79,7 +79,7 @@ class Database extends \bueno\Dao {
   }
 }
 
-class ResultSet extends \PDOStatement {
+class ResultSet extends PDOStatement {
 	private $position = 0;
 	private $count = 0;
 	public function setCount ($count) {
@@ -94,23 +94,24 @@ class ResultSet extends \PDOStatement {
 	}
 	function getList () {
 		$list = array();
-		while (($x = $this->fetchAll(\PDO::FETCH_NUM)))
+		while (($x = $this->fetchAll(PDO::FETCH_NUM)))
 			$list[] = $x[0];
 		return $list;
 	}
 	function getMap () {
 		$list = array();
-		while (($x = $this->fetchAll(\PDO::FETCH_NUM)))
-			$list[0] = $x[1];
+		if (($xs = $this->fetchAll(PDO::FETCH_NUM)))
+			foreach ($xs as $x)
+				$list[$x[0]] = $x[1];
 		return $list;
 	}
 	function getObject () {
-		return $this->fetch(\PDO::FETCH_OBJ);
+		return $this->fetch(PDO::FETCH_OBJ);
 	}
 	function getObjects () {
-		return $this->fetchAll(\PDO::FETCH_OBJ);
+		return $this->fetchAll(PDO::FETCH_OBJ);
 	}
 	function getArray ($associative=true, $numeric=false) {
-		return $this->fetch(($associative&&$numeric?\PDO::FETCH_BOTH:($associative||!$numeric?\PDO::FETCH_ASSOC:\PDO::FETCH_NUM)));
+		return $this->fetch(($associative&&$numeric?PDO::FETCH_BOTH:($associative||!$numeric?PDO::FETCH_ASSOC:PDO::FETCH_NUM)));
 	}
 }
