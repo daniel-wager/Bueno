@@ -47,7 +47,7 @@ class Object {
 	public static function getValue ($needle, $haystack, $default=null) {
 		if ($haystack===null)
 			return $default;
-		if (empty($needle) || !is_scalar($needle))
+		if ($needle===null || !is_scalar($needle))
 			throw new InvalidException('needle',$needle);
 		if (is_array($haystack))
 			return isset($haystack[$needle]) ? $haystack[$needle] : $default;
