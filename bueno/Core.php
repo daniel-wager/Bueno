@@ -16,10 +16,6 @@ class Object {
 			default:
 				$buffer = print_r($mixed,true);
 				break;
-			case 'pause':
-				$buffer = print_r($mixed,true);
-				Config::isCli() ? fgets(STDIN) : trigger_error("'{$option}' is only used in cli mode",E_USER_WARNING);
-				break;
 			case 'trace':
 				$buffer = '';
 				foreach (debug_backtrace() as $i=>$x) {
@@ -38,11 +34,21 @@ class Object {
 				return self::logError("[DEBUG] {$title}\n".print_r($mixed,true));
 		}
 		$buffer = (Config::isCli() ? null : '<pre>').PHP_EOL.$title.PHP_EOL.$buffer.(Config::isCli() ? ($option=='pause' ? null : PHP_EOL.PHP_EOL) : PHP_EOL.'</pre>'.PHP_EOL);
-		if ($option=='return')
-			return $buffer;
-		print $buffer;
-		if ($option=='die' || $option=='exit')
-			exit;
+		switch ($option) {
+			case 'return':
+				return $buffer;
+		 	case 'pause':
+				print $buffer;
+				Config::isCli() ? fgets(STDIN) : trigger_error("'{$option}' is only used in cli mode",E_USER_WARNING);
+				break;
+			case 'die':
+			case 'exit':
+				print $buffer;
+				exit;
+			default:
+				print $buffer;
+				break;
+		}
 	}
 	public static function getValue ($needle, $haystack, $default=null) {
 		if ($haystack===null)
