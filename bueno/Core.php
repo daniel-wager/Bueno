@@ -37,7 +37,7 @@ class Object {
 		switch ($option) {
 			case 'return':
 				return $buffer;
-		 	case 'pause':
+			case 'pause':
 				print $buffer;
 				Config::isCli() ? fgets(STDIN) : trigger_error("'{$option}' is only used in cli mode",E_USER_WARNING);
 				break;
@@ -411,18 +411,23 @@ class Box extends Object implements \JsonSerializable {
 			if (!is_array($properties) && !is_object($properties))
 				throw new InvalidException('properties',$properties,array('object','array'));
 			foreach ($this as $k=>$v)
-				$this->__set($k,self::getValue($k,self::getValue($k,$properties)));
+				if (($v = self::getValue($k,$properties)))
+					$this->__set($k,$v);
 		}
 	}
 	public function __set ($name, $value=null) {
 		if (empty($name) || !is_string($name))
 			throw new InvalidException('name',$name,'type string');
-		return $this->{'set'.ucfirst($name)}($value);
+		if (!($method = 'set'.ucfirst($name)) || !method_exists($this,$method))
+			throw new InvalidException('method',$method,preg_replace(array('/^,+/','/,+/'),array('',','),implode(',',array_map(function($x){ return preg_match('/^set/',$x) ? $x : null; },get_class_methods($this)))));
+		return $this->{$method}($value);
 	}
 	public function __get ($name) {
 		if (empty($name) || !is_string($name))
 			throw new InvalidException('name',$name,'type string');
-		return $this->{'get'.ucfirst($name)}();
+		if (!($method = 'get'.ucfirst($name)) || !method_exists($this,$method))
+			throw new InvalidException('method',$method,preg_replace(array('/^,+/','/,+/'),array('',','),implode(',',array_map(function($x){ return preg_match('/^get/',$x) ? $x : null; },get_class_methods($this)))));
+		return $this->{$method}();
 	}
 	public function jsonSerialize () {
 		return get_object_vars($this);
