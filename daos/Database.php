@@ -94,8 +94,9 @@ class ResultSet extends PDOStatement {
 	}
 	function getList () {
 		$list = array();
-		while (($x = $this->fetchAll(PDO::FETCH_NUM)))
-			$list[] = $x[0];
+		while (($xs = $this->fetchAll(PDO::FETCH_NUM)))
+			foreach ($xs as $x)
+				$list[] = $x[0];
 		return $list;
 	}
 	function getMap () {
