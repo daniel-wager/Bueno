@@ -6,6 +6,7 @@ use \bueno\exceptions\CoreException;
 use \bueno\exceptions\FileNotFoundCoreException;
 use \bueno\exceptions\FileTypeNotFoundCoreException;
 use \bueno\exceptions\InvalidException;
+use \bueno\View;
 
 class Object {
 	public function __toString () {
@@ -308,7 +309,7 @@ class Config extends Object{
 	private static $debug = false;
 	private static $cli = false;
 	public static function init () {
-		self::$cli = (bool) self::getValue('SHELL',$_SERVER,false);
+		self::$cli = PHP_SAPI=='cli';
 	}
 	# for application use
 	public static function setDefaultNamespace ($namespace, $path) {
@@ -520,10 +521,7 @@ abstract class Controller extends Loader {
 		return $this->caller;
 	}
 	protected function getView ($path=null, $tokens=null) {
-		if (!$path)
-			$path = basename(str_replace('\\','/',$this->fileBox->getClass()));
-		$path = Core::formatPath($path,'views',$this->fileBox->getContext());
-		return new \bueno\View($path,$tokens);
+		return new View(Core::formatPath(($path?:basename(str_replace('\\','/',$this->fileBox->getClass()))),'views',$this->fileBox->getContext()),$tokens);
 	}
 	protected static function getGet ($name, $default=false, $makeSafe=true) {
 		return (($value = self::getValue($name,$_GET,$default)) && $makeSafe)
@@ -614,6 +612,9 @@ class View extends Object {
 		$x = ob_get_contents();
 		ob_end_clean();
 		return $x;
+	}
+	public function getFilePath () {
+		return $this->myPath;
 	}
 	public function getRoot () {
 		return $this->myParent
