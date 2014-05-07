@@ -73,9 +73,9 @@ class Database extends \bueno\Dao {
 	protected function formatBool ($bool=null) {
 		if ($bool===null)
 			return 'NULL';
-		if (!is_bool($bool))
+		if (!(is_bool($bool) || $bool=='yes' || $bool=='no'))
 			throw new InvalidException('bool',$bool);
-		return $bool ? 1 : 0;
+		return $bool===true || $bool=='yes' ? 1 : 0;
   }
 }
 
