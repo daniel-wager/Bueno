@@ -430,6 +430,9 @@ class Box extends Object implements \JsonSerializable {
 			throw new InvalidException('method',$method,preg_replace(array('/^,+/','/,+/'),array('',','),implode(',',array_map(function($x){ return preg_match('/^get/',$x) ? $x : null; },get_class_methods($this)))));
 		return $this->{$method}();
 	}
+	public function __toString () {
+		return print_r($this,true);
+	}
 	public function jsonSerialize () {
 		return get_object_vars($this);
 	}
