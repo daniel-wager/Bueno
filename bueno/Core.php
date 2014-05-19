@@ -336,8 +336,7 @@ class Config extends Object{
 		self::$requestNotFoundController = Core::formatPath($controller,'controllers');
 	}
 	public static function setRequestBase ($requestBase=null) {
-		if ($requestBase)
-			self::$requestBase = ($x = trim($requestBase,'/')) ? "/{$x}" : null;
+		self::$requestBase = ($x = trim($requestBase,'/')) ? "/{$x}" : null;
 	}
 	public static function setRequest ($request=null) {
 		if ($request && ($request = preg_replace('=/+=','/',$request)) && $request!='/') {
