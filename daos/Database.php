@@ -54,14 +54,25 @@ class Database extends \bueno\Dao {
 			return 'NULL';
 		return $this->getPdo()->quote($text);
 	}
-	protected function formatDate ($date=null, $time=true) {
+	protected function formatDate ($date=null, $time=false) {
+		if ($time)
+			return $this->formatDateTime($date);
 		if ($date===null)
 			return 'NULL';
 		if ($date instanceof \DateTime)
-			return $date->format(($time?DATABASE_DATETIME_FORMAT:DATABASE_DATE_FORMAT));
+			return '\''.$date->format(DATABASE_DATE_FORMAT).'\'';
 		if (!($date = strtotime($date)))
 			throw new InvalidException('Date');
-		return date(($time?DATABASE_DATETIME_FORMAT:DATABASE_DATE_FORMAT),$date);
+		return '\''.date(DATABASE_DATE_FORMAT,$date).'\'';
+  }
+	protected function formatDateTime ($dateTime=null) {
+		if ($dateTime===null)
+			return 'NULL';
+		if ($dateTime instanceof \DateTime)
+			return '\''.$date->format(DATABASE_DATETIME_FORMAT).'\'';
+		if (!($date = strtotime($date)))
+			throw new InvalidException('Date');
+		return '\''.date(DATABASE_DATETIME_FORMAT,$dateTime).'\'';
   }
 	protected function formatNumber ($number=null) {
 		if ($number===null)
