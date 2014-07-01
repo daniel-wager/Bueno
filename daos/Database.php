@@ -54,7 +54,7 @@ class Database extends \bueno\Dao {
 			return 'NULL';
 		return $this->getPdo()->quote($text);
 	}
-	protected function formatDate ($date=null, $time=false) {
+	protected function formatDate ($date=null, $time=true) {
 		if ($time)
 			return $this->formatDateTime($date);
 		if ($date===null)
@@ -69,8 +69,8 @@ class Database extends \bueno\Dao {
 		if ($dateTime===null)
 			return 'NULL';
 		if ($dateTime instanceof \DateTime)
-			return '\''.$date->format(DATABASE_DATETIME_FORMAT).'\'';
-		if (!($date = strtotime($date)))
+			return '\''.$dateTime->format(DATABASE_DATETIME_FORMAT).'\'';
+		if (!($dateTime = strtotime($dateTime)))
 			throw new InvalidException('Date');
 		return '\''.date(DATABASE_DATETIME_FORMAT,$dateTime).'\'';
   }
