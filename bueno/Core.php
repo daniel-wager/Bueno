@@ -34,7 +34,7 @@ class Object {
 			case 'log':
 				return self::logError("[DEBUG] {$title}\n".print_r($mixed,true));
 		}
-		$buffer = (Config::isCli() ? null : '<pre>').PHP_EOL.$title.PHP_EOL.$buffer.(Config::isCli() ? ($option=='pause' ? null : PHP_EOL.PHP_EOL) : PHP_EOL.'</pre>'.PHP_EOL);
+		$buffer = (Config::isCli() ? null : '<pre class="debug">').PHP_EOL.$title.PHP_EOL.$buffer.(Config::isCli() ? ($option=='pause' ? null : PHP_EOL.PHP_EOL) : PHP_EOL.'</pre>'.PHP_EOL);
 		switch ($option) {
 			case 'return':
 				return $buffer;
