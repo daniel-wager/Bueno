@@ -100,30 +100,30 @@ class ResultSet extends PDOStatement {
 	public function getCount () {
 		return $this->count;
 	}
-	function getValue () {
+	public function getValue () {
 		return $this->fetchColumn(0);
 	}
-	function getList () {
+	public function getList () {
 		$list = array();
 		while (($xs = $this->fetchAll(PDO::FETCH_NUM)))
 			foreach ($xs as $x)
 				$list[] = $x[0];
 		return $list;
 	}
-	function getMap () {
+	public function getMap () {
 		$list = array();
 		if (($xs = $this->fetchAll(PDO::FETCH_NUM)))
 			foreach ($xs as $x)
 				$list[$x[0]] = $x[1];
 		return $list;
 	}
-	function getObject () {
+	public function getObject () {
 		return $this->fetch(PDO::FETCH_OBJ);
 	}
-	function getObjects () {
+	public function getObjects () {
 		return $this->fetchAll(PDO::FETCH_OBJ);
 	}
-	function getArray ($associative=true, $numeric=false) {
+	public function getArray ($associative=true, $numeric=false) {
 		return $this->fetch(($associative&&$numeric?PDO::FETCH_BOTH:($associative||!$numeric?PDO::FETCH_ASSOC:PDO::FETCH_NUM)));
 	}
 }
