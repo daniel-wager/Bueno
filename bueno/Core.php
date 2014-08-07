@@ -503,7 +503,6 @@ abstract class Controller extends Loader {
 	private $forward = null;
 	private $message = null;
 	private $caller = null;
-
 	public function setForward ($controller) {
 		$this->forward = Core::formatPath($controller,'controllers',$this->fileBox->getContext());
 	}
@@ -558,7 +557,7 @@ abstract class Controller extends Loader {
 		return Core::execute(Core::formatPath($controller,'controllers',$this->fileBox->getContext()),$args,$this,$parentClass);
 	}
 	protected function runRequest ($request, $args=null) {
-		return Core::execute(Core::formatRequestToPath($request),$args,$this);
+		return Core::execute(Config::getDefaultNamespace().Core::formatRequestToPath($request),$args,$this);
 	}
 	protected function formatRequest ($controller=null, array $get=null) {
 		$request = $controller===null
