@@ -307,6 +307,7 @@ class Config extends Object{
 	private static $requestBase = null;
 	private static $request = null;
 	private static $debug = false;
+	private static $dev = false;
 	private static $cli = false;
 	public static function init () {
 		self::$cli = PHP_SAPI=='cli';
@@ -345,7 +346,10 @@ class Config extends Object{
 		}
 	}
 	public static function setDebug ($debug=false) {
-		self::$debug = ($debug);
+		self::$debug = (bool) $debug;
+	}
+	public static function setDev ($dev=false) {
+		self::$dev = (bool) $dev;
 	}
 	public static function setErrorLog ($file) {
 		self::$errorLogFile = $file;
@@ -394,6 +398,9 @@ class Config extends Object{
 	}
 	public static function isDebug () {
 		return self::$debug;
+	}
+	public static function isDev () {
+		return self::$dev;
 	}
 	public static function isCli () {
 		return self::$cli;

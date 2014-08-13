@@ -16,7 +16,8 @@ class Bueno extends \bueno\Object {
 }
 // set default configs
 Config::init();
-Config::setDebug(false);
+Config::setDev(preg_match('/^(?:local\.|dev\.)',Bueno::getValue('HTTP_HOST',$_SERVER)));
+Config::setDebug(Config::isDev());
 Config::addNamespace('bueno',BUENO_PATH,false);
 Config::setRequestBase(Bueno::getValue('SCRIPT_NAME',$_SERVER));
 Config::setRequest(Bueno::getValue('PATH_INFO',$_SERVER));
