@@ -181,8 +181,17 @@ class Core extends Object {
 		if (!$controller || $controller === '/')
 			$controller = Config::getDefaultController();
 		// set up cli args
-		if (!$args && !$caller && Config::isCli())
-			$args = array_slice(self::getValue('argv',$_SERVER,array()),2);
+		if (!$args && !$caller && Config::isCli()) {
+			if (($args = array_slice(self::getValue('argv',$_SERVER,array()),2))) {
+				foreach ($args as $i=>$x) {
+					if (strstr($x,'=')) {
+						list($k,$v) = explode('=',$x);
+						unset($args[$i]);
+						$args[$k] = $v;
+					}
+				}
+			}
+		}
 		//	get controller view
 		if (!$view = self::executeController($controller,$args,null,$caller,$parentClass))
 			throw new CoreException('ViewNotFound',array('controller'=>$controller));
