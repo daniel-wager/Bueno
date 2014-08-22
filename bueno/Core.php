@@ -288,7 +288,7 @@ class Core extends Object {
 	}
 }
 
-class Config extends Object{
+class Config extends Object {
 	private static $typeFolderMap = array(
 			'exceptions'=>'_exceptions',
 			'controllers'=>'_controllers',
@@ -314,6 +314,7 @@ class Config extends Object{
 	private static $defaultNamespace = null;
 	private static $errorLogFile = null;
 	private static $requestBase = null;
+	private static $timeZone = null;
 	private static $request = null;
 	private static $debug = false;
 	private static $dev = false;
@@ -362,6 +363,9 @@ class Config extends Object{
 	}
 	public static function setErrorLog ($file) {
 		self::$errorLogFile = $file;
+	}
+	public static function setTimeZone ($timeZone) {
+		self::$timeZone = $timeZone;
 	}
 
 	# for framework use
@@ -418,6 +422,9 @@ class Config extends Object{
 		if (!self::$defaultNamespace)
 			throw new CoreException('DefaultNamespaceNotDefined');
 		return self::$defaultNamespace;
+	}
+	public static function getTimeZone () {
+		return self::$timeZone;
 	}
 }
 
