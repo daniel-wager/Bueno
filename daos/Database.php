@@ -54,6 +54,15 @@ class Database extends \bueno\Dao {
 			return 'NULL';
 		return $this->getPdo()->quote($text);
 	}
+	public function beginTransaction () {
+		return $this->getPdo()->beginTransaction();
+	}
+	public function commitTransaction () {
+		return $this->getPdo()->commit();
+	}
+	public function rollbackTransaction () {
+		return $this->getPdo()->rollBack();
+	}
 	protected function formatDate ($date=null, $time=false) {
 		if ($time)
 			return $this->formatDateTime($date);
