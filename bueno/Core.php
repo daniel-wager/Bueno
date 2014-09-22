@@ -51,15 +51,15 @@ class Object {
 				break;
 		}
 	}
-	public static function getValue ($needle, $haystack, $default=null) {
+	public static function getValue ($needle, $haystack, $default=null, $emptyToDefault=false) {
 		if ($haystack===null)
 			return $default;
 		if ($needle===null || !is_scalar($needle))
 			throw new InvalidException('needle',$needle);
 		if (is_array($haystack))
-			return isset($haystack[$needle]) ? $haystack[$needle] : $default;
+			return $emptyToDefault ? (empty($haystack[$needle]) ? $default : $haystack[$needle]) : (isset($haystack[$needle]) ? $haystack[$needle] : $default);
 		if (is_object($haystack))
-			return isset($haystack->{$needle}) ? $haystack->{$needle} : $default;
+			return $emptyToDefault ? (empty($haystack->{$needle}) ? $default : $haystack->{$needle}) : (isset($haystack->{$needle}) ? $haystack->{$needle} : $default);
 		throw new InvalidException('haystack',$haystack,array('array','object','null'));
 	}
 	public static function logError ($message) {
@@ -548,17 +548,17 @@ abstract class Controller extends Loader {
 		return new View(Core::formatPath(($path?:basename(str_replace('\\','/',$this->fileBox->getClass()))),'views',$this->fileBox->getContext()),$tokens);
 	}
 	protected static function getGet ($name, $default=false, $makeSafe=true) {
-		return (($value = self::getValue($name,$_GET,$default)) && $makeSafe)
+		return (($value = self::getValue($name,$_GET,$default,true)) && $makeSafe)
 			? Core::makeSafe($value)
 			: $value;
 	}
 	protected static function getPost ($name, $default=false, $makeSafe=true) {
-		return (($value = self::getValue($name,$_POST,$default)) && $makeSafe)
+		return (($value = self::getValue($name,$_POST,$default,true)) && $makeSafe)
 			? Core::makeSafe($value)
 			: $value;
 	}
 	protected static function getRequest ($name, $default=false, $makeSafe=true) {
-		return (($value = self::getValue($name,$_REQUEST,$default)) && $makeSafe)
+		return (($value = self::getValue($name,$_REQUEST,$default,true)) && $makeSafe)
 			? Core::makeSafe($value)
 			: $value;
 	}
