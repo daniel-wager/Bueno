@@ -7,11 +7,12 @@ class DateTime extends \DateTime {
 	private static $universalDateTimeZone;
 	private $myDateTimeZone; 
 	public function __construct ($datetime=null, DateTimeZone $timezone=null) {
-		if (!self::$localDateTimeZone)
-			self::$localDateTimeZone = new DateTimeZone(Config::getTimeZone());
-		if (!self::$universalDateTimeZone)
-			self::$universalDateTimeZone = new DateTimeZone('UTC');
 		parent::__construct($datetime,$timezone);
+		if ($timezone || !Config::getTimeZone())
+			self::$localDateTimeZone = $this->getTimezone();
+		else if (Config::getTimeZone())
+			self::$localDateTimeZone = new DateTimeZone(Config::getTimeZone());
+		self::$universalDateTimeZone = new DateTimeZone('UTC');
 	}
 	public function switchToLocal () {
 		$this->setTimeZone(self::$localDateTimeZone);
