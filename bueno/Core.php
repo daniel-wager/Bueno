@@ -220,6 +220,8 @@ class Core extends Object {
 				$value[$k] = self::makeSafe($v);
 			}
 			return $value;
+		} else if (is_null($value) || is_bool($value)) {
+			return $value;
 		} else {
 			return htmlentities(trim($value),ENT_NOQUOTES);
 		}
@@ -547,30 +549,30 @@ abstract class Controller extends Loader {
 	protected function getView ($path=null, $tokens=null) {
 		return new View(Core::formatPath(($path?:basename(str_replace('\\','/',$this->fileBox->getClass()))),'views',$this->fileBox->getContext()),$tokens);
 	}
-	protected static function getGet ($name, $default=false, $makeSafe=true) {
+	protected static function getGet ($name, $default=null, $makeSafe=true) {
 		return (($value = self::getValue($name,$_GET,$default,true)) && $makeSafe)
 			? Core::makeSafe($value)
 			: $value;
 	}
-	protected static function getPost ($name, $default=false, $makeSafe=true) {
+	protected static function getPost ($name, $default=null, $makeSafe=true) {
 		return (($value = self::getValue($name,$_POST,$default,true)) && $makeSafe)
 			? Core::makeSafe($value)
 			: $value;
 	}
-	protected static function getRequest ($name, $default=false, $makeSafe=true) {
+	protected static function getRequest ($name, $default=null, $makeSafe=true) {
 		return (($value = self::getValue($name,$_REQUEST,$default,true)) && $makeSafe)
 			? Core::makeSafe($value)
 			: $value;
 	}
-	protected static function getSession ($name, $default=false, $autoStart=false) {
+	protected static function getSession ($name, $default=null, $autoStart=false) {
 		if (!session_id() && (!$autoStart || !session_start()))
 			throw new InvalidException('Session',session_id());
 		return self::getValue($name,$_SESSION,$default);
 	}
-	protected static function getServer ($name, $default=false) {
+	protected static function getServer ($name, $default=null) {
 		return self::getValue($name,$_SERVER,$default);
 	}
-	protected static function getCookie ($name, $default=false) {
+	protected static function getCookie ($name, $default=null) {
 		return self::getValue($name,$_COOKIE,$default);
 	}
 	protected static function getRequestController () {
