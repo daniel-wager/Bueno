@@ -323,6 +323,7 @@ class Config extends Object {
 	private static $cli = false;
 	public static function init () {
 		self::$cli = PHP_SAPI=='cli';
+		self::$timeZone = date_default_timezone_get();
 	}
 	# for application use
 	public static function setDefaultNamespace ($namespace, $path) {
