@@ -64,8 +64,8 @@ class Object {
 	}
 	public static function logError ($message) {
 		Config::getErrorLog()
-			? error_log(date('Y-m-d H:i:s')."\t{$message}\n",3,Config::getErrorLog())
-			: error_log(date('Y-m-d H:i:s')."\t{$message}\n");
+			? error_log(date('Y-m-d H:i:s')." {$message}",3,Config::getErrorLog())
+			: error_log(date('Y-m-d H:i:s')." {$message}");
 	}
 }
 
