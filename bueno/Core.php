@@ -73,7 +73,7 @@ class Factory extends Object {
 	private static $fileBoxes = array();
 	public static function build ($path, $option='filebox', $args=null) {
 		if (!$path)
-			throw new InvalidException($path,'path');
+			throw new InvalidException('path',$path);
 		// allow paths with ns seperator
 		if (strstr($path,'\\'))
 			$path = str_replace('\\','.',(substr($path,0,1)=='\\'?substr($path,1):$path));
