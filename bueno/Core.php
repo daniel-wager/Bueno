@@ -524,32 +524,7 @@ class Loader extends Object {
 	}
 }
 
-abstract class Controller extends Loader {
-	// TODO add returnType here (/sitemap.html | /sitemap.xml | /sitemap.json)
-	private $forward = null;
-	private $message = null;
-	private $caller = null;
-	public function setForward ($controller) {
-		$this->forward = Core::formatPath($controller,'controllers',$this->fileBox->getContext());
-	}
-	public function getForward () {
-		return $this->forward;
-	}
-	public function setMessage ($message) {
-		$this->message = $message;
-	}
-	public function getMessage () {
-		return $this->message;
-	}
-	public function setCaller ($caller) {
-		$this->caller = $caller;
-	}
-	public function getCaller () {
-		return $this->caller;
-	}
-	protected function getView ($path=null, $tokens=null) {
-		return new View(Core::formatPath(($path?:basename(str_replace('\\','/',$this->fileBox->getClass()))),'views',$this->fileBox->getContext()),$tokens);
-	}
+trait SuperGlobals {
 	protected static function getGet ($name, $default=null, $makeSafe=true) {
 		return (($value = self::getValue($name,$_GET,$default,true)) && $makeSafe)
 			? Core::makeSafe($value)
@@ -575,6 +550,35 @@ abstract class Controller extends Loader {
 	}
 	protected static function getCookie ($name, $default=null) {
 		return self::getValue($name,$_COOKIE,$default);
+	}
+}
+
+abstract class Controller extends Loader {
+	use SuperGlobals;
+	// TODO add returnType here (/sitemap.html | /sitemap.xml | /sitemap.json)
+	private $forward = null;
+	private $message = null;
+	private $caller = null;
+	public function setForward ($controller) {
+		$this->forward = Core::formatPath($controller,'controllers',$this->fileBox->getContext());
+	}
+	public function getForward () {
+		return $this->forward;
+	}
+	public function setMessage ($message) {
+		$this->message = $message;
+	}
+	public function getMessage () {
+		return $this->message;
+	}
+	public function setCaller ($caller) {
+		$this->caller = $caller;
+	}
+	public function getCaller () {
+		return $this->caller;
+	}
+	protected function getView ($path=null, $tokens=null) {
+		return new View(Core::formatPath(($path?:basename(str_replace('\\','/',$this->fileBox->getClass()))),'views',$this->fileBox->getContext()),$tokens);
 	}
 	protected static function getRequestController () {
 		return Config::getRequestedController() ?: Config::getDefaultController();
@@ -659,11 +663,9 @@ class View extends Object {
 		return $this->myTokens;
 	}
 }
-
 abstract class Logic extends Loader {}
 abstract class Library extends Object {}
 abstract class Dao extends Object {}
-
 abstract class Dto extends \bueno\Box {
 	public function __construct ($record=null, $validate=false) {
 		if ($record) {
