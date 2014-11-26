@@ -22,8 +22,7 @@ abstract class UnixDaemon extends \bueno\Controller {
 				case SIGTERM:
 				case SIGHUP:
 				case SIGINT:
-					self::logError('[INFO] '.__METHOD__.'['.$pid.'] exiting...');
-					exit;
+					self::stop();
 				case SIGUSR1:
 					self::logError('[INFO] '.__METHOD__.'['.$pid.']::SIGUSR1');
 					break;
@@ -70,6 +69,11 @@ abstract class UnixDaemon extends \bueno\Controller {
 			// self::logError('[INFO] '.__METHOD__."[{$pid}] finished");
 			sleep($this->runInterval);
 		}
+	}
+
+	protected static function stop () {
+		self::logError('[INFO] '.__METHOD__.'['.getmypid().'] exiting...');
+		exit;
 	}
 
 	abstract protected function runDaemon (array $args=null);
