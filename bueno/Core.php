@@ -318,6 +318,7 @@ class Config extends Object {
 	private static $requestBase = null;
 	private static $timeZone = null;
 	private static $request = null;
+	private static $requestReturnType = 'html';
 	private static $debug = false;
 	private static $dev = false;
 	private static $cli = false;
@@ -353,6 +354,8 @@ class Config extends Object {
 		self::$requestBase = ($x = trim($requestBase,'/')) ? "/{$x}" : null;
 	}
 	public static function setRequest ($request=null) {
+		if ($request && substr_count($request,'.')==1)
+			list ($request,self::$requestReturnType) = explode('.',$request);
 		if ($request && ($request = preg_replace('=/+=','/',$request)) && $request!='/') {
 			self::$request = $request;
 			self::$requestedController = Core::formatRequestToPath(preg_replace('=\/\d+$=','',$request));
@@ -381,6 +384,9 @@ class Config extends Object {
 	}
 	public static function getRequest () {
 		return self::$request;
+	}
+	public static function getRequestReturnType () {
+		return self::$requestReturnType;
 	}
 	public static function getRequestedController () {
 		return self::$requestedController ? self::getDefaultNamespace().self::$requestedController : null;
@@ -555,7 +561,6 @@ trait SuperGlobals {
 
 abstract class Controller extends Loader {
 	use SuperGlobals;
-	// TODO add returnType here (/sitemap.html | /sitemap.xml | /sitemap.json)
 	private $forward = null;
 	private $message = null;
 	private $caller = null;
@@ -577,6 +582,9 @@ abstract class Controller extends Loader {
 	public function getCaller () {
 		return $this->caller;
 	}
+	public function getReturnType () {
+		return Config::getRequestReturnType();
+	}
 	protected function getView ($path=null, $tokens=null) {
 		return new View(Core::formatPath(($path?:basename(str_replace('\\','/',$this->fileBox->getClass()))),'views',$this->fileBox->getContext()),$tokens);
 	}
@@ -589,10 +597,12 @@ abstract class Controller extends Loader {
 	protected function runRequest ($request, $args=null) {
 		return Core::execute(Config::getDefaultNamespace().Core::formatRequestToPath($request),$args,$this);
 	}
-	protected function formatRequest ($controller=null, array $get=null) {
+	protected function formatRequest ($controller=null, array $get=null, $returnType=null) {
 		$request = $controller===null
 				? Core::formatControllerToRequest($this->fileBox->getPath())
 				: Core::formatControllerToRequest(Core::formatPath($controller,'controller',$this->fileBox->getContext()));
+		if ($returnType)
+			$request .= '.'.strtolower($returnType);
 		if ($get)
 			$request .= '?'.http_build_query($get);
 		return $request;
