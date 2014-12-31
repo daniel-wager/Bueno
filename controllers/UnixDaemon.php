@@ -38,7 +38,7 @@ abstract class UnixDaemon extends \bueno\Controller {
 		if (!Config::isCli())
 			throw new Exception('Daemon must be CLI');
 		if ($this->maxProcesses) {
-			exec('ps aux | grep -v grep | grep '.preg_replace('/^.*\\\(\w+)$/','\1',get_class($this)),$processes);
+			exec('ps aux | grep -v grep | grep "'.implode(' ',self::getServer('argv',array())).'"',$processes);
 			if (count($processes)>$this->maxProcesses) {
 				self::logError('[INFO] '.__METHOD__.'['.getmypid().'] max processes reached:'.$this->maxProcesses);
 				self::handleSignal(SIGTERM);
