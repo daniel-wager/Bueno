@@ -23,18 +23,20 @@ class Database extends \bueno\Dao {
 		$this->connectionDsn = $dsn;
 		$this->connectionKey = "{$this->connectionDsn}:{$this->user}:{$this->persistant}";
 	}
-	protected function getPdo () {
-		if (!($pdo = self::getValue($this->connectionKey,self::$connections))) {
+	protected function getPdo ($new=false) {
+		if ($new || !($pdo = self::getValue($this->connectionKey,self::$connections))) {
 			try {
 				$pdo = new PDO(
 					$this->connectionDsn,
 					$this->user,
 					$this->pass,
 					array(
-						PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
-						PDO::ATTR_PERSISTENT=>$this->persistant,
-						PDO::ATTR_STATEMENT_CLASS=>array('\bueno\daos\ResultSet'),
-						PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_OBJ));
+						PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION
+						,PDO::ATTR_PERSISTENT=>$this->persistant
+						,PDO::ATTR_STATEMENT_CLASS=>array('\bueno\daos\ResultSet')
+						,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_OBJ));
+				if ($new)
+					return $pdo;
 				self::$connections[$this->connectionKey] = $pdo;
 			} catch (PDOException $e) {
 				throw new CoreException('Database',array('error'=>"{$e->getMessage()} [{$e->getFile()}:{$e->getLine()}]"));
@@ -49,11 +51,6 @@ class Database extends \bueno\Dao {
 		self::$connections[$this->connectionKey] = null;
 		unset(self::$connections[$this->connectionKey]);
 	}
-	protected function formatText ($text=null) {
-		if ($text===null)
-			return 'NULL';
-		return $this->getPdo()->quote($text);
-	}
 	public function beginTransaction () {
 		return $this->getPdo()->beginTransaction();
 	}
@@ -62,6 +59,11 @@ class Database extends \bueno\Dao {
 	}
 	public function rollbackTransaction () {
 		return $this->getPdo()->rollBack();
+	}
+	protected function formatText ($text=null) {
+		if ($text===null)
+			return 'NULL';
+		return $this->getPdo()->quote($text);
 	}
 	protected function formatDate ($date=null, $time=false) {
 		if ($time)
