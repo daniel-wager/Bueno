@@ -4,16 +4,16 @@ use \DateTimeZone;
 use \bueno\Config;
 class DateTime extends \DateTime {
 	private static $utcDtz;
-	private $myDtz; 
+	private static $localDtz;
 	public function __construct ($datetime=null, DateTimeZone $myDtz=null) {
-		if (!($this->myDtz = $myDtz))
-			$this->myDtz = new DateTimeZone(Config::getTimeZone());
 		if (!self::$utcDtz)
 			self::$utcDtz = new DateTimeZone('UTC');
-		parent::__construct($datetime,$this->myDtz);
+		if (!self::$localDtz)
+			self::$localDtz = new DateTimeZone(Config::getTimeZone());
+		parent::__construct($datetime,$myDtz);
 	}
 	public function switchToLocal () {
-		$this->setTimeZone($this->myDtz);
+		$this->setTimeZone(self::$localDtz);
 		return $this;
 	}
 	public function switchToUniversal () {
