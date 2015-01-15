@@ -9,7 +9,7 @@
  */
 namespace bueno\controllers;
 
-class PoweredBy extends \bueno\controllers\Controller {
+class PoweredBy extends \bueno\Controller {
 
   public function run (array $args=null) {
     return $this->getView('bueno.PoweredBy');

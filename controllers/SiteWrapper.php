@@ -9,7 +9,7 @@
  */
 namespace bueno\controllers;
 
-class SiteWrapper extends \bueno\controllers\Controller {
+class SiteWrapper extends \bueno\Controller {
 
   public function run (array $args=null) {
   	$view = $this->getView('bueno.SiteWrapper',$args);

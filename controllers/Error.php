@@ -8,7 +8,7 @@ namespace bueno\controllers;
  * @copyright Copyright (c) 2007
  * @version 1.0
  */
-class Error extends \bueno\controllers\Controller {
+class Error extends \bueno\Controller {
 	public $exception;
 
   public function run (array $args=null) {

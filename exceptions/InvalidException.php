@@ -1,6 +1,6 @@
 <?php
 namespace bueno\exceptions;
-class InvalidException extends \bueno\exceptions\Exception {
+class InvalidException extends \bueno\Exception {
   private $name;
 	private $value;
 	private $options;

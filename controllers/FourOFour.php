@@ -8,7 +8,7 @@
  * @version 1.0
  */
 namespace bueno\controllers;
-class FourOFour extends \bueno\controllers\Controller {
+class FourOFour extends \bueno\Controller {
 
   public function run (array $args=null) {
   	header("HTTP/1.0 404 Not Found");

@@ -1,7 +1,6 @@
 <?php
 namespace bueno\exceptions;
-
-class UniqueException extends \bueno\exceptions\Exception {
+class UniqueException extends \bueno\Exception {
   public function __construct ($name, $value=null) {
 		$message = "{$name} already exists";
 		if (\bueno\Config::isDebug() && $value)
