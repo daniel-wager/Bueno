@@ -2,30 +2,66 @@
 namespace bueno\libs;
 use \DateTimeZone;
 use \bueno\Config;
+use \bueno\exceptions\InvalidException;
 class DateTime extends \DateTime {
 	private static $utcDtz;
 	private static $localDtz;
+	protected $myDtz;
 	public function __construct ($datetime=null, DateTimeZone $myDtz=null) {
+		if ($myDtz!==null && !($myDtz instanceof DateTimeZone))
+			throw new InvalidException('myDtz',$myDtz,'DateTimeZone');
+		$this->myDtz = $myDtz ?: self::getLocalDtz();
+		parent::__construct($datetime,$this->myDtz);
+	}
+	private static function getUtcDtz () {
 		if (!self::$utcDtz)
 			self::$utcDtz = new DateTimeZone('UTC');
+		return self::$utcDtz;			
+	}
+	private static function getLocalDtz () {
 		if (!self::$localDtz)
 			self::$localDtz = new DateTimeZone(Config::getTimeZone());
-		parent::__construct($datetime,$myDtz);
+		return self::$localDtz;
 	}
 	public function switchToLocal () {
-		$this->setTimeZone(self::$localDtz);
+		$this->setTimeZone(self::getLocalDtz());
 		return $this;
 	}
 	public function switchToUniversal () {
-		$this->setTimeZone(self::$utcDtz);
+		$this->setTimeZone(self::getUtcDtz());
+		return $this;
+	}
+	public function switchBack () {
+		$this->setTimeZone($this->myDtz);
+		return $this;
+	}
+	public function switchToDateTimeZone (DateTimeZone $dtz) {
+		if (!($dtz instanceof DateTimeZone))
+			throw new InvalidException('dtz',$dtz,'DateTimeZone');
+		$this->setTimeZone($dtz);
 		return $this;
 	}
 	public function formatLocal ($format) {
+		$curDtz = $this->getTimeZone();
 		$this->switchToLocal();
-		return parent::format($format);
+		$format = parent::format($format);
+		$this->setTimeZone($curDtz);
+		return $format;
 	}
 	public function formatUniversal ($format) {
+		$curDtz = $this->getTimeZone();
 		$this->switchToUniversal();
-		return parent::format($format);
+		$format = parent::format($format);
+		$this->setTimeZone($curDtz);
+		return $format;
+	}
+	public function formatDateTimeZone ($format, DateTimeZone $dtz) {
+		if (!($dtz instanceof DateTimeZone))
+			throw new InvalidException('dtz',$dtz,'DateTimeZone');
+		$curDtz = $this->getTimeZone();
+		$this->switchToDateTimeZone($dtz);
+		$format = parent::format($format);
+		$this->setTimeZone($curDtz);
+		return $format;
 	}
 }
