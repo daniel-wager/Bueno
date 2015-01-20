@@ -35,6 +35,7 @@ abstract class UnixDaemon extends \bueno\Controller {
 	}
 
 	public function run (array $args=null) {
+		self::logError('[INFO] '.__METHOD__.'['.getmypid().'] starting...');
 		if (!Config::isCli())
 			throw new Exception('Daemon must be CLI');
 		if ($this->maxProcesses) {
@@ -51,7 +52,7 @@ abstract class UnixDaemon extends \bueno\Controller {
 			self::logError('[ERROR] '.__METHOD__."[{$pid}] failed to fork");
 			self::handleSignal(SIGTERM);
 		} else if ($pid>0) {
-			self::logError('[INFO] '.__METHOD__."[{$pid}] daemonizing");
+			self::logError('[INFO] '.__METHOD__."[{$pid}] daemonizing...");
 			self::handleSignal(SIGTERM);
 		}
 		// detach from terminal
@@ -64,9 +65,9 @@ abstract class UnixDaemon extends \bueno\Controller {
 		$args['pid'] = $pid;
 		// execute
 		while (true) {
-			// self::logError('[INFO] '.__METHOD__."[{$pid}] starting");
+			self::logError('[INFO] '.__METHOD__."[{$pid}] waking...");
 			$this->runDaemon($args);
-			// self::logError('[INFO] '.__METHOD__."[{$pid}] finished");
+			self::logError('[INFO] '.__METHOD__."[{$pid}] sleeping...");
 			sleep($this->runInterval);
 		}
 	}
