@@ -18,7 +18,7 @@ class Error extends \bueno\Controller {
 			$message .= " {$k}:{$v}";
     // build wrapper
     $error = $this->getView("bueno.views.{$this->exception->name}Error",$args);
-    $view = $this->getView('bueno.views.Error',array('body'=>$error,'trace'=>$this->exception->__toViewString()));
+    $view = $this->getView('bueno.views.Error',array('body'=>$error,'trace'=>$this->exception->format('view')));
     $wrap = $this->runController('bueno.SiteWrapper',array('title'=>'Problems!','body'=>$view));
     return $wrap;
   }

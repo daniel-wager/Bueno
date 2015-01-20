@@ -18,8 +18,9 @@ namespace bueno {
 	class Exception extends \LogicException {
 		private $path;
 		private $info;
-		public function __construct ($text, $path=null) {
-			parent::__construct($text);
+		private $logMessage;
+		public function __construct ($message, $path=null) {
+			parent::__construct($message);
 			$this->path = $path;
 			$this->extra = null;
 		}
@@ -28,14 +29,26 @@ namespace bueno {
 		}
 		public function setInfo ($info) {
 			$this->info = $info;
+			return $this;
 		}
-		public function __toString () {
-			$err = "What: ".$this->getMessage()
+		public function setLogMessage ($logMessage) {
+			$this->logMessage = $logMessage;
+			return $this;
+		}
+		public function getLogMessage () {
+			return $this->logMessage ?: $this->getMessage();
+		}
+		public function format ($type=null) {
+			if ($type && $type!='log' && $type!='view')
+				throw new InvalidException('type',$type,array('log','view'));
+			$err = "What: ".($type=='log' ? $this->getLogMessage() : $this->getMessage())
 					.PHP_EOL."When: ".date('Y-m-d H:m:s')
 					.($this->path ? PHP_EOL."Path: {$this->path}" : null)
 					.($this->info ? PHP_EOL."Info: {$this->info}" : null)
 					.PHP_EOL."Where: {$this->file}:{$this->line}";
 			foreach ($this->getTrace() as $i=>$x) {
+				if ($type=='view' && Object::getValue('class',$x)=='bueno\Core')
+					continue;
 				$args = "";
 				foreach ($x['args'] as $xa) {
 					if (is_array($xa)) {
@@ -54,33 +67,8 @@ namespace bueno {
 			$err .= PHP_EOL;
 			return $err;
 		}
-		public function __toViewString () {
-			$err = "What: ".$this->getMessage()
-					.PHP_EOL."When: ".date('Y-m-d H:m:s')
-					.($this->path ? PHP_EOL."Path: {$this->path}" : null)
-					.($this->info ? PHP_EOL."Info: {$this->info}" : null)
-					.PHP_EOL."Where: ";
-			$buenoPath = Config::getPathForNamespace('bueno');
-			$trace = $this->getTrace();
-			foreach ($trace as $i=>$x) {
-				if (Object::getValue('class',$x)=='bueno\Core')
-					continue;
-				$args = array();
-				foreach ($x['args'] as $xa) {
-					if (is_array($xa)) {
-						$args[] = 'Array';
-					} else if (is_object($xa)) {
-						$args[] = 'Object';
-					} else {
-						$args[] = $xa;
-					}
-					$err .= (isset($x['file'])?"{$x['file']}:{$x['line']}":null)
-							 .(isset($x['class'])?" {$x['class']}{$x['type']}":null)
-							 .(isset($x['function'])?" {$x['function']}(".implode(', ',$args).')':null)
-							 .PHP_EOL;
-				}
-			}
-			return $err;
+		public function __toString () {
+			return $this->format();
 		}
 	}	
 
@@ -139,9 +127,11 @@ namespace bueno {
 			throw new InvalidException('haystack',$haystack,array('array','object','null'));
 		}
 		public static function logError ($message) {
+			if ($message instanceof Exception)
+				$message = $message->format('log');
 			Config::getErrorLog()
-				? error_log(date('Y-m-d H:i:s')." {$message}",3,Config::getErrorLog())
-				: error_log(date('Y-m-d H:i:s')." {$message}");
+				? error_log(date('Y-m-d H:i:s T')." {$message}\n",3,Config::getErrorLog())
+				: error_log($message);
 		}
 	}
 
