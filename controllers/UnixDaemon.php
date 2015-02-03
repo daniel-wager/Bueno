@@ -14,7 +14,7 @@ pcntl_signal(SIGUSR1,'\bueno\controllers\UnixDaemon::handleSignal');
 abstract class UnixDaemon extends \bueno\Controller {
 	protected $maxProcesses = 1;
 	protected $runInterval = 1;
-	
+
 	public static function handleSignal ($signal) {
 		$pid = getmypid();
 		try {

@@ -16,7 +16,7 @@ class DateTime extends \DateTime {
 	private static function getUtcDtz () {
 		if (!self::$utcDtz)
 			self::$utcDtz = new DateTimeZone('UTC');
-		return self::$utcDtz;			
+		return self::$utcDtz;
 	}
 	private static function getLocalDtz () {
 		if (!self::$localDtz)

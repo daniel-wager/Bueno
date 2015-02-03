@@ -70,7 +70,7 @@ namespace bueno {
 		public function __toString () {
 			return $this->format();
 		}
-	}	
+	}
 
 	class Object {
 		public function __toString () {
