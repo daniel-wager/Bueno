@@ -304,14 +304,16 @@ namespace bueno {
 			self::logError($e);
 			// display it
 			if ($e instanceof CoreException) {
-				if (Config::isCli()) {
-					echo Config::isDebug() ? (string)$e : $e->getMessage();
-				} else if (Config::isDebug()) {
-					$controller = Factory::build('bueno.controllers.Error','new');
-					$controller->setException($e);
-					echo $controller->run($e->tokens);
+				if (Config::showErrorAsHtml()) {
+					if (Config::isDebug()) {
+						$controller = Factory::build('bueno.controllers.Error','new');
+						$controller->setException($e);
+						echo $controller->run($e->tokens);
+					} else {
+						echo self::execute(Config::getRequestNotFoundController())->getRoot();
+					}
 				} else {
-					echo self::execute(Config::getRequestNotFoundController())->getRoot();
+					echo Config::isDebug() ? (string)$e : $e->getMessage();
 				}
 			} else {
 				Config::isDebug()
@@ -388,6 +390,7 @@ namespace bueno {
 		private static $debug = false;
 		private static $dev = false;
 		private static $cli = false;
+		private static $showErrorAsHtml = true;
 		private static $init = false;
 		public static function init () {
 			if (!self::$init) {
@@ -397,11 +400,17 @@ namespace bueno {
 				self::setDebug(self::isDev());
 				self::addNamespace('bueno',__DIR__,false);
 				self::setRequestBase(self::getValue('SCRIPT_NAME',$_SERVER));
-				self::setRequest((self::$cli?self::getValue(1,self::getValue('argv',$_SERVER)):self::getValue('PATH_INFO',$_SERVER)));
+				self::setRequest((self::isCli()?self::getValue(1,self::getValue('argv',$_SERVER)):self::getValue('PATH_INFO',$_SERVER)));
+				self::setShowErrorAsHtml(self::isCli());
 				self::$init = true;
 			}
 		}
 		# for application use
+		public static function setShowErrorAsHtml ($showErrorAsHtml=true) {
+			if (!is_bool($showErrorAsHtml))
+				throw new InvalidException('showErrorAsHtml',$showErrorAsHtml,'bool');
+			self::$showErrorAsHtml = $showErrorAsHtml;
+		}
 		public static function setDefaultNamespace ($namespace, $path) {
 			self::addNamespace($namespace,$path,true);
 		}
@@ -509,6 +518,9 @@ namespace bueno {
 		}
 		public static function getTimeZone () {
 			return self::$timeZone;
+		}
+		public static function showErrorAsHtml () {
+			return self::$showErrorAsHtml;
 		}
 	}
 
