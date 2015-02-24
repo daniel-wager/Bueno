@@ -121,9 +121,9 @@ namespace bueno {
 			if ($needle===null || !is_scalar($needle))
 				throw new InvalidException('needle',$needle);
 			if (is_array($haystack))
-				return $emptyToDefault ? (empty($haystack[$needle]) ? $default : $haystack[$needle]) : (isset($haystack[$needle]) ? $haystack[$needle] : $default);
+				return $emptyToDefault ? (empty($haystack[$needle]) ? $default : (is_string($haystack[$needle]) ? trim($haystack[$needle]) : $haystack[$needle])) : (isset($haystack[$needle]) ? (is_string($haystack[$needle]) ? trim($haystack[$needle]) : $haystack[$needle]) : $default);
 			if (is_object($haystack))
-				return $emptyToDefault ? (empty($haystack->{$needle}) ? $default : $haystack->{$needle}) : (isset($haystack->{$needle}) ? $haystack->{$needle} : $default);
+				return $emptyToDefault ? (empty($haystack->{$needle}) ? $default : (is_string($haystack->{$needle}) ? trim($haystack->{$needle}) : $haystack->{$needle})) : (isset($haystack->{$needle}) ? (is_string($haystack->{$needle}) ? trim($haystack->{$needle}) : $haystack->{$needle}) : $default);
 			throw new InvalidException('haystack',$haystack,array('array','object','null'));
 		}
 		public static function logError ($message) {
