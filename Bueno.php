@@ -401,7 +401,7 @@ namespace bueno {
 				self::addNamespace('bueno',__DIR__,false);
 				self::setRequestBase(self::getValue('SCRIPT_NAME',$_SERVER));
 				self::setRequest((self::isCli()?self::getValue(1,self::getValue('argv',$_SERVER)):self::getValue('PATH_INFO',$_SERVER)));
-				self::setShowErrorAsHtml(self::isCli());
+				self::setShowErrorAsHtml(!self::isCli());
 				self::$init = true;
 			}
 		}
