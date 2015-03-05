@@ -7,9 +7,10 @@ class CoreException extends \bueno\Exception {
 		$message = "Core::{$name}";
 		$this->name = $name;
 		if (($this->tokens = is_array($tokens) ? $tokens : array())) {
-			$logMessage = $message;
+			$logMessage = "{$message} tokens (";
 			foreach ($this->tokens as $k=>$v)
-				$logMessage .= (empty($info)?'':"\n\t").ucfirst($k)."={$v}";
+				$logMessage .= (empty($logMessage)?'':', ')."{$k}={$v}";
+			$logMessage .= ')';
 			$this->setLogMessage($logMessage);
 		}
 		parent::__construct($message);
