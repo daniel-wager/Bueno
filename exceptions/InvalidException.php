@@ -2,17 +2,17 @@
 namespace bueno\exceptions;
 use \bueno\Config;
 class InvalidException extends \bueno\Exception {
-  private $name;
+	private $name;
 	private $value;
 	private $options;
-  public function __construct ($name, $value=null, $options=null) {
+	public function __construct ($name, $value=null, $options=null, $showValueAndOptions=false) {
 		$this->setName($name);
 		$this->setValue($value);
 		$this->setOptions($options);
 		$message = $this->value ? "Invalid {$this->name}" : "Missing {$this->name}";
-		$this->setLogMessage($message.($this->value?' value:"'.print_r($this->value,true).'"':'').($this->options?' options:"'.implode('","',$this->options).'"':null)." {$this->file}:{$this->line}");
-    parent::__construct((Config::isDebug()?$this->getLogMessage():$message));
-  }
+		$this->setLogMessage($message.($this->value?' value:"'.print_r($this->value,true).'"':'').($this->options?' options:"'.implode('","',$this->options).'"':null).(Config::isDebug()?" {$this->file}:{$this->line}":''));
+		parent::__construct(($showValueAndOptions||Config::isDebug()?$this->getLogMessage():$message));
+	}
 	private function setName ($name) {
 		$this->name = trim($name);
 	}
