@@ -282,9 +282,12 @@ namespace bueno {
 		}
 		public static function makeSafe ($value) {
 			if (is_array($value)) {
-				foreach ($value as $k=>$v) {
+				foreach ($value as $k=>$v)
 					$value[$k] = self::makeSafe($v);
-				}
+				return $value;
+			} else if (is_object($value)) {
+				foreach ($value as $k=>$v)
+					$value->{$k} = self::makeSafe($v);
 				return $value;
 			} else if (is_null($value) || is_bool($value)) {
 				return $value;
