@@ -622,17 +622,17 @@ namespace bueno {
 
 	trait SuperGlobals {
 		protected static function getGet ($name, $default=null, $makeSafe=true) {
-			return (($value = self::getValue($name,$_GET,$default,true)) && $makeSafe)
+			return (($value = self::getValue($name,$_GET,$default,true)) && $makeSafe && $value!=$default)
 				? Core::makeSafe($value)
 				: $value;
 		}
 		protected static function getPost ($name, $default=null, $makeSafe=true) {
-			return (($value = self::getValue($name,$_POST,$default,true)) && $makeSafe)
+			return (($value = self::getValue($name,$_POST,$default,true)) && $makeSafe && $value!=$default)
 				? Core::makeSafe($value)
 				: $value;
 		}
 		protected static function getRequest ($name, $default=null, $makeSafe=true) {
-			return (($value = self::getValue($name,$_REQUEST,$default,true)) && $makeSafe)
+			return (($value = self::getValue($name,$_REQUEST,$default,true)) && $makeSafe && $value!=$default)
 				? Core::makeSafe($value)
 				: $value;
 		}
