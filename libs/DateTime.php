@@ -41,26 +41,29 @@ class DateTime extends \DateTime {
 		$this->setTimeZone($dtz);
 		return $this;
 	}
-	public function formatLocal ($format) {
+	public function format ($format=DATE_ATOM) {
+		return parent::format($format);
+	}
+	public function formatLocal ($format=null) {
 		$curDtz = $this->getTimeZone();
 		$this->switchToLocal();
-		$format = parent::format($format);
+		$format = $this->format($format);
 		$this->setTimeZone($curDtz);
 		return $format;
 	}
-	public function formatUniversal ($format) {
+	public function formatUniversal ($format=null) {
 		$curDtz = $this->getTimeZone();
 		$this->switchToUniversal();
-		$format = parent::format($format);
+		$format = $this->format($format);
 		$this->setTimeZone($curDtz);
 		return $format;
 	}
-	public function formatDateTimeZone ($format, DateTimeZone $dtz) {
+	public function formatDateTimeZone ($format=null, DateTimeZone $dtz) {
 		if (!($dtz instanceof DateTimeZone))
 			throw new InvalidException('dtz',$dtz,'DateTimeZone');
 		$curDtz = $this->getTimeZone();
 		$this->switchToDateTimeZone($dtz);
-		$format = parent::format($format);
+		$format = $this->format($format);
 		$this->setTimeZone($curDtz);
 		return $format;
 	}
