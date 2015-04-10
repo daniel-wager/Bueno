@@ -650,6 +650,7 @@ namespace bueno {
 	}
 
 	abstract class Controller extends Loader {
+		//	TODO	forkController ($controller, $args=null, $parentClass=null) // fork process
 		use \bueno\SuperGlobals;
 		private $forward = null;
 		private $message = null;
@@ -773,7 +774,7 @@ namespace bueno {
 	}
 
 	abstract class Dto extends Box {
-		public function __construct ($record=null, $validate=false) {
+		public function __construct ($record=null, $validate=true) {
 			if ($record) {
 				if ($validate) {
 					parent::__construct($record);
