@@ -71,48 +71,42 @@ namespace bueno {
 			return $this->format();
 		}
 	}
-
 	class Object {
 		public function __toString () {
 			return 'Object:\\'.get_class($this);
 		}
-		public static function debug ($mixed, $title=null, $option=null) {
-			switch ($option) {
-				default:
-					$buffer = print_r($mixed,true);
-					break;
-				case 'trace':
-					$buffer = '';
-					foreach (debug_backtrace() as $i=>$x) {
-						$args = '';
-						if (is_array(self::getValue('args',$x)))
-							foreach ($x['args'] as $xarg)
-								$args .= ($args ? "," : '').(is_array($xarg) ? 'array(..)' : $xarg);
-						$buffer .= "{$i} ".($x['function']?(isset($x['class'])?"{$x['class']}::":null)."{$x['function']}({$args}) ":null)."{$x['file']}:{$x['line']}".PHP_EOL;
-					}
-					$buffer .= print_r($mixed,true);
-					break;
-				case 'xml':
-					$buffer = $mixed->asXML();
-					break;
-				case 'log':
-					return self::logError("[DEBUG] {$title}\n".print_r($mixed,true));
+		public static function debug ($mixed, $title=null, $options=null) {
+			$options = (is_array($options) ? $options : (strstr($options,',') ? explode(',',$options) : array($options)));
+			$buffer = '';
+			if (in_array('trace',$options)) {
+				foreach (debug_backtrace() as $i=>$x) {
+					$args = '';
+					if (is_array(self::getValue('args',$x)))
+						foreach ($x['args'] as $xarg)
+							$args .= ($args ? "," : '').(is_array($xarg) ? 'array(..)' : $xarg);
+					$buffer .= "{$i} ".($x['function']?(isset($x['class'])?"{$x['class']}::":null)."{$x['function']}({$args}) ":null)."{$x['file']}:{$x['line']}".PHP_EOL;
+				}
+			}
+			if (in_array('xml',$options)) {
+				$buffer .= $mixed->asXML();
+			} else if (in_array('export',$options)) {
+				$buffer .= var_export($mixed,true);
+			} else {
+				$buffer .= print_r($mixed,true);
+			}
+			if (in_array('log',$options)) {
+				return self::logError("[DEBUG] {$title}\n{$buffer}");
 			}
 			$buffer = (Config::isCli() ? null : '<pre class="debug">').PHP_EOL.$title.PHP_EOL.$buffer.(Config::isCli() ? ($option=='pause' ? null : PHP_EOL.PHP_EOL) : PHP_EOL.'</pre>'.PHP_EOL);
-			switch ($option) {
-				case 'return':
-					return $buffer;
-				case 'pause':
-					print $buffer;
-					Config::isCli() ? fgets(STDIN) : trigger_error("'{$option}' is only used in cli mode",E_USER_WARNING);
-					break;
-				case 'die':
-				case 'exit':
-					print $buffer;
-					exit;
-				default:
-					print $buffer;
-					break;
+			if (in_array('return',$options)) {
+				return $buffer;
+			} else {
+				print $buffer;
+			}
+			if (in_array('pause',$options)) {
+				Config::isCli() ? fgets(STDIN) : trigger_error("'{$option}' is only used in cli mode",E_USER_WARNING);
+			} else if (in_array('die',$options) || in_array('exit',$options)) {
+				exit;
 			}
 		}
 		public static function getValue ($needle, $haystack, $default=null, $emptyToDefault=false) {
