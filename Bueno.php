@@ -71,6 +71,7 @@ namespace bueno {
 			return $this->format();
 		}
 	}
+
 	class Object {
 		public function __toString () {
 			return 'Object:\\'.get_class($this);
@@ -299,6 +300,8 @@ namespace bueno {
 		public static function handleException (\Exception $e) {
 			// log it
 			self::logError($e);
+			if (Config::isDebug() && ($e instanceof \PDOException) && ($sql = self::getValue(0,self::getValue('args',self::getValue(0,$e->getTrace())))))
+				self::logError("[ERROR] SQL:\t{$sql}");
 			// display it
 			if ($e instanceof CoreException) {
 				if (Config::showErrorAsHtml()) {
