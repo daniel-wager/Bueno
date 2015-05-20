@@ -397,8 +397,8 @@ namespace bueno {
 			if (!self::$init) {
 				self::$cli = PHP_SAPI=='cli';
 				self::setTimeZone(date_default_timezone_get());
-				self::setDev(self::getValue('SERVER_DEV',$_SERVER,false));
 				self::setStage(self::getValue('SERVER_STAGE',$_SERVER,false));
+				self::setDev(self::getValue('SERVER_DEV',$_SERVER,self::isStage()));
 				self::setDebug(self::isDev());
 				self::addNamespace('bueno',__DIR__,false);
 				self::setRequestBase(self::getValue('SCRIPT_NAME',$_SERVER));
