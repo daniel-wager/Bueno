@@ -389,6 +389,7 @@ namespace bueno {
 		private static $requestReturnType = 'html';
 		private static $debug = false;
 		private static $dev = false;
+		private static $stage = false;
 		private static $cli = false;
 		private static $showErrorAsHtml = true;
 		private static $init = false;
@@ -397,6 +398,7 @@ namespace bueno {
 				self::$cli = PHP_SAPI=='cli';
 				self::setTimeZone(date_default_timezone_get());
 				self::setDev(self::getValue('SERVER_DEV',$_SERVER,false));
+				self::setStage(self::getValue('SERVER_STAGE',$_SERVER,false));
 				self::setDebug(self::isDev());
 				self::addNamespace('bueno',__DIR__,false);
 				self::setRequestBase(self::getValue('SCRIPT_NAME',$_SERVER));
@@ -450,6 +452,9 @@ namespace bueno {
 		}
 		public static function setDev ($dev=false) {
 			self::$dev = (bool) $dev;
+		}
+		public static function setStage ($stage=false) {
+			self::$stage = (bool) $stage;
 		}
 		public static function setErrorLog ($file) {
 			self::$errorLogFile = $file;
@@ -507,6 +512,9 @@ namespace bueno {
 		}
 		public static function isDev () {
 			return self::$dev;
+		}
+		public static function isStage () {
+			return self::$stage;
 		}
 		public static function isCli () {
 			return self::$cli;
