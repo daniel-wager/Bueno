@@ -5,13 +5,13 @@ use \bueno\excpetions\InvalidException;
 use \bueno\Config;
 
 // setup signal handling
-declare(ticks=1);
 pcntl_signal(SIGTERM,'\bueno\controllers\UnixDaemon::handleSignal');
 pcntl_signal(SIGHUP,'\bueno\controllers\UnixDaemon::handleSignal');
 pcntl_signal(SIGINT,'\bueno\controllers\UnixDaemon::handleSignal');
 pcntl_signal(SIGUSR1,'\bueno\controllers\UnixDaemon::handleSignal');
 
 abstract class UnixDaemon extends \bueno\Controller {
+	protected $fork = true;
 	protected $maxProcesses = 1;
 	protected $runInterval = 1;
 
@@ -45,26 +45,31 @@ abstract class UnixDaemon extends \bueno\Controller {
 				self::handleSignal(SIGTERM);
 			}
 		}
-		// daemonize
-		$pid = pcntl_fork();
-		// only the parent will know it's pid
-		if ($pid==-1) {
-			self::logError('[ERROR] '.__METHOD__."[{$pid}] failed to fork");
-			self::handleSignal(SIGTERM);
-		} else if ($pid>0) {
-			self::logError('[INFO] '.__METHOD__."[{$pid}] daemonizing...");
-			self::handleSignal(SIGTERM);
-		}
-		// detach from terminal
-		if (posix_setsid()==-1) {
-			self::logError('[ERROR] '.__METHOD__."[{$pid}] failed to detach from terminal");
-			self::handleSignal(SIGTERM);
+		if ($this->fork) {
+			// daemonize
+			$pid = pcntl_fork();
+			// only the parent will know it's pid
+			if ($pid==-1) {
+				self::logError('[ERROR] '.__METHOD__."[{$pid}] failed to fork");
+				self::handleSignal(SIGTERM);
+			} else if ($pid>0) {
+				self::logError('[INFO] '.__METHOD__."[{$pid}] daemonizing...");
+				self::handleSignal(SIGTERM);
+			}
+			// detach from terminal
+			if (posix_setsid()==-1) {
+				self::logError('[ERROR] '.__METHOD__."[{$pid}] failed to detach from terminal");
+				self::handleSignal(SIGTERM);
+			} else {
+				$pid = posix_getpid();
+			}
 		} else {
-			$pid = posix_getpid();
+			$pid = getmypid();
 		}
 		$args['pid'] = $pid;
 		// execute
 		while (true) {
+			pcntl_signal_dispatch();
 			self::logError('[INFO] '.__METHOD__."[{$pid}] waking...");
 			try {
 				$this->runDaemon($args);
