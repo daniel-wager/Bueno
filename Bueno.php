@@ -84,7 +84,7 @@ namespace bueno {
 					$args = '';
 					if (is_array(self::getValue('args',$x)))
 						foreach ($x['args'] as $xarg)
-							$args .= ($args ? "," : '').(is_array($xarg) ? 'array(..)' : $xarg);
+							$args .= ($args ? "," : '').(is_null($xarg) || is_scalar($xarg) ? $xarg : gettype($xarg));
 					$buffer .= "{$i} ".($x['function']?(isset($x['class'])?"{$x['class']}::":null)."{$x['function']}({$args}) ":null)."{$x['file']}:{$x['line']}".PHP_EOL;
 				}
 			}
