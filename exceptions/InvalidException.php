@@ -12,7 +12,7 @@ class InvalidException extends \bueno\Exception {
 		$message = ($this->value?'Invalid ':'Missing ').$this->name;
 		$this->setLogMessage($message
 				.($this->value?"\nValue: ".print_r($this->value,true):'')
-				.($this->options?"\nOptions: ".implode('","',$this->options):null));
+				.($this->options?"\nOptions: ".implode(',',$this->options):null));
 		parent::__construct(($showValueAndOptions||Config::isDebug()?$this->getLogMessage():$message));
 	}
 	private function setName ($name) {
