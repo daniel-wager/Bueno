@@ -18,6 +18,7 @@ namespace bueno {
 	class Exception extends \LogicException {
 		private $path;
 		private $info;
+		private $user;
 		private $logMessage;
 		public function __construct ($message, $path=null) {
 			parent::__construct($message);
@@ -31,6 +32,10 @@ namespace bueno {
 			$this->info = $info;
 			return $this;
 		}
+		public function setUser ($user) {
+			$this->user = $user;
+			return $this;
+		}
 		public function setLogMessage ($logMessage) {
 			$this->logMessage = $logMessage;
 			return $this;
@@ -41,28 +46,32 @@ namespace bueno {
 		public function format ($type=null) {
 			if ($type && $type!='log' && $type!='view')
 				throw new InvalidException('type',$type,array('log','view'));
-			$err = "What: ".($type=='log' ? $this->getLogMessage() : $this->getMessage())
+			$isLog = $type=='log';
+			$err = "What: ".($isLog ? $this->getLogMessage() : $this->getMessage())
+					.($isLog && $this->user ? PHP_EOL."Who: {$this->user}" : null)
 					.PHP_EOL."When: ".date('Y-m-d H:m:s')
-					.($this->path ? PHP_EOL."Path: {$this->path}" : null)
-					.($this->info ? PHP_EOL."Info: {$this->info}" : null)
+					.($isLog && $this->path ? PHP_EOL."Path: {$this->path}" : null)
+					.($isLog && $this->info ? PHP_EOL."Info: {$this->info}" : null)
 					.PHP_EOL."Where: {$this->file}:{$this->line}";
-			foreach ($this->getTrace() as $i=>$x) {
-				if ($type=='view' && Object::getValue('class',$x)=='bueno\Core')
-					continue;
-				$args = "";
-				foreach ($x['args'] as $xa) {
-					if (is_array($xa)) {
-						$args .= ($args?',':null).'array';
-					} else if (is_object($xa)) {
-						$args .= ($args?',':null).get_class($xa);
-					} else {
-						$args .= ($args?',':null).var_export($xa, true);
+			if ($isLog) {
+				foreach ($this->getTrace() as $i=>$x) {
+					if (preg_match('/^bueno\\\/',Object::getValue('class',$x)))
+						continue;
+					$args = "";
+					foreach ($x['args'] as $xa) {
+						if (is_array($xa)) {
+							$args .= ($args?',':null).'array';
+						} else if (is_object($xa)) {
+							$args .= ($args?',':null).get_class($xa);
+						} else {
+							$args .= ($args?',':null).var_export($xa, true);
+						}
 					}
+					$err .= PHP_EOL
+							.(isset($x['file'])?"{$x['file']}:{$x['line']}":null)
+							.(isset($x['class'])?" {$x['class']}{$x['type']}":null)
+							.(isset($x['function'])?$x['function'].'('.$args.') ':null);
 				}
-				$err .= PHP_EOL
-						.(isset($x['file'])?"{$x['file']}:{$x['line']}":null)
-						.(isset($x['class'])?" {$x['class']}{$x['type']}":null)
-						.(isset($x['function'])?$x['function'].'('.$args.') ':null);
 			}
 			$err .= PHP_EOL;
 			return $err;
