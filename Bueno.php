@@ -107,7 +107,7 @@ namespace bueno {
 			if (in_array('log',$options)) {
 				return self::logError("[DEBUG] {$title}\n{$buffer}");
 			}
-			$buffer = (Config::isCli() ? null : '<pre class="debug">').PHP_EOL.$title.PHP_EOL.$buffer.(Config::isCli() ? ($option=='pause' ? null : PHP_EOL.PHP_EOL) : PHP_EOL.'</pre>'.PHP_EOL);
+			$buffer = (Config::isCli() ? null : '<pre class="debug">').PHP_EOL.$title.PHP_EOL.$buffer.(Config::isCli() ? (in_array('pause',$options) ? null : PHP_EOL.PHP_EOL) : PHP_EOL.'</pre>'.PHP_EOL);
 			if (in_array('return',$options)) {
 				return $buffer;
 			} else {
