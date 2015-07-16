@@ -130,6 +130,17 @@ namespace bueno {
 				return $emptyToDefault ? (empty($haystack->{$needle}) ? $default : (is_string($haystack->{$needle}) ? trim($haystack->{$needle}) : $haystack->{$needle})) : (isset($haystack->{$needle}) ? (is_string($haystack->{$needle}) ? trim($haystack->{$needle}) : $haystack->{$needle}) : $default);
 			throw new InvalidException('haystack',$haystack,array('array','object','null'));
 		}
+		public static function getPregValue ($pattern, $haystack, $default=null) {
+			if ($haystack===null)
+				return $default;
+			if ($pattern===null || !is_string($pattern))
+				throw new InvalidException('pattern',$pattern);
+			if (is_array($haystack))
+				return ($values = array_intersect_key($haystack,array_flip(preg_grep($pattern,array_keys($haystack))))) ? $values : $default;
+			if (is_object($haystack))
+				return ($values = array_intersect_key(get_object_vars($haystack),array_flip(preg_grep($pattern,array_keys(get_object_vars($haystack)))))) ? $values : $default;
+			throw new InvalidException('haystack',$haystack,array('array','object','null'));
+		}
 		public static function logError ($message) {
 			if ($message instanceof Exception)
 				$message = $message->format('log');
@@ -775,6 +786,12 @@ namespace bueno {
 		}
 		public function getTokens () {
 			return $this->myTokens;
+		}
+		public function getTokenValue ($needle, $default=null) {
+			return parent::getValue($needle,$this->getTokens(),$default);
+		}
+		public function getPregTokenValue ($needle, $default=null) {
+			return parent::getPregValue($needle,$this->getTokens(),$default);
 		}
 	}
 
