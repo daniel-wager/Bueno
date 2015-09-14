@@ -5,30 +5,32 @@
       body {
         background-color: white;
       }
-      div,td {
+      .bueno.body div,
+      .bueno.body td {
         font: normal 12px arial;
       }
-      table {
+      .bueno.body table {
         border: 1px solid #cccccc;
         border-collapse: collapse;
       }
-      div,table {
+      .bueno.body div,
+      .bueno.body table {
         margin: 0 auto;
       }
-      input {
+      .bueno.body input {
         border: 1px solid #555555;
         background-color: #dedede;
       }
-      input.submit {
+      .bueno.body input.submit {
         background-color: #ffe2ac;
         border: 1px solid orange;
       }
-      div.wrap {
+      .bueno.body div.wrap {
         margin: 0 auto;
         padding: 25px 0px;
         width: 700px;
       }
-      div.body {
+      .bueno.body div.body {
         width: 100%;
         border: 1px solid #cccccc;
         background-color: transparent;
@@ -37,8 +39,8 @@
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <div class="body">
+    <div class="bueno wrap">
+      <div class="bueno body">
         <?=$this->body ?>
       </div>
       <?=$this->poweredby?>
