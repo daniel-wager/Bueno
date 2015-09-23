@@ -120,15 +120,18 @@ namespace bueno {
 			}
 		}
 		public static function getValue ($needle, $haystack, $default=null, $emptyToDefault=false) {
+			if ($needle===null || !is_scalar($needle))
+				throw new InvalidException('needle',$needle,'scalar');
 			if ($haystack===null)
 				return $default;
-			if ($needle===null || !is_scalar($needle))
-				throw new InvalidException('needle',$needle);
-			if (is_array($haystack))
-				return $emptyToDefault ? (empty($haystack[$needle]) ? $default : (is_string($haystack[$needle]) ? trim($haystack[$needle]) : $haystack[$needle])) : (isset($haystack[$needle]) ? (is_string($haystack[$needle]) ? trim($haystack[$needle]) : $haystack[$needle]) : $default);
-			if (is_object($haystack))
-				return $emptyToDefault ? (empty($haystack->{$needle}) ? $default : (is_string($haystack->{$needle}) ? trim($haystack->{$needle}) : $haystack->{$needle})) : (isset($haystack->{$needle}) ? (is_string($haystack->{$needle}) ? trim($haystack->{$needle}) : $haystack->{$needle}) : $default);
-			throw new InvalidException('haystack',$haystack,array('array','object','null'));
+			if (is_null($haystack) || is_scalar($haystack))
+				throw new InvalidException('haystack',$haystack,array('array','object','null'));
+			$value = is_array($haystack)
+					? (isset($haystack[$needle]) ? $haystack[$needle] : $default)
+					: (isset($haystack->{$needle}) ? $haystack->{$needle} : $default);
+			if (is_string($value))
+				$value = trim($value);
+			return $emptyToDefault && empty($value) && !is_bool($value) && $value!==0 && $value!=='0' ? $default : $value;
 		}
 		public static function getPregValue ($pattern, $haystack, $default=null) {
 			if ($haystack===null)
