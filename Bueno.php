@@ -124,8 +124,10 @@ namespace bueno {
 				throw new InvalidException('needle',$needle,'scalar');
 			if ($haystack===null)
 				return $default;
-			if (is_null($haystack) || is_scalar($haystack))
+			if (is_null($haystack) || is_scalar($haystack)) {
+				self::debug($haystack,__METHOD__.'['.__LINE__.']::'.($haystack?'Invalid':'Missing').' haystack','log,trace,export');
 				throw new InvalidException('haystack',$haystack,array('array','object','null'));
+			}
 			$value = is_array($haystack)
 					? (isset($haystack[$needle]) ? $haystack[$needle] : $default)
 					: (isset($haystack->{$needle}) ? $haystack->{$needle} : $default);
