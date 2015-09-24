@@ -120,8 +120,10 @@ namespace bueno {
 			}
 		}
 		public static function getValue ($needle, $haystack, $default=null, $emptyToDefault=false) {
-			if ($needle===null || !is_scalar($needle))
+			if ($needle===null || !is_scalar($needle)) {
+				self::debug($needle,__METHOD__.'['.__LINE__.']::'.($needle?'Invalid':'Missing').' needle','log,trace,export');
 				throw new InvalidException('needle',$needle,'scalar');
+			}
 			if ($haystack===null)
 				return $default;
 			if (is_null($haystack) || is_scalar($haystack)) {
