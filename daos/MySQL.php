@@ -6,4 +6,7 @@ class MySQL extends Database {
 		$dsn = "mysql:host={$host}".($port?";port={$port}":'').($name?";dbname={$name}":'').($charset?";charset={$charset}":'');
 		parent::__construct($dsn,$user,$pass,$persistant);
 	}
+	public function getTotalCount () {
+		return $this->getPdo()->query("SELECT FOUND_ROWS();")->getValue();
+	}
 }
