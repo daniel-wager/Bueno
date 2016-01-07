@@ -785,11 +785,8 @@ namespace bueno {
 				: $this;
 		}
 		public function setTokens ($tokens) {
-			if (is_array($tokens) || is_object($tokens)) {
-				foreach ($tokens as $k=>$v) {
-					$this->__set($k,$v);
-				}
-			}
+			if (is_array($tokens) || is_object($tokens))
+				$this->myTokens = $tokens;
 		}
 		public function getTokens () {
 			return $this->myTokens;
