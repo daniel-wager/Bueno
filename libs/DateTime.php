@@ -13,12 +13,12 @@ class DateTime extends \DateTime {
 		$this->myDtz = $myDtz ?: self::getLocalDtz();
 		parent::__construct($datetime,$this->myDtz);
 	}
-	private static function getUtcDtz () {
+	public static function getUtcDtz () {
 		if (!self::$utcDtz)
 			self::$utcDtz = new DateTimeZone('UTC');
 		return self::$utcDtz;
 	}
-	private static function getLocalDtz () {
+	public static function getLocalDtz () {
 		if (!self::$localDtz)
 			self::$localDtz = new DateTimeZone(Config::getTimeZone());
 		return self::$localDtz;
