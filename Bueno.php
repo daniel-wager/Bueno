@@ -333,19 +333,19 @@ namespace bueno {
 			if ($e instanceof CoreException) {
 				if (Config::showErrorAsHtml()) {
 					if (Config::isDebug()) {
-						$controller = Factory::build('bueno.controllers.Error','new');
-						$controller->setException($e);
-						echo $controller->run($e->tokens);
+						print Factory::build('bueno.controllers.Error','new')->setException($e)->run($e->tokens);
 					} else {
-						echo self::execute(Config::getRequestNotFoundController())->getRoot();
+						print self::execute(Config::getRequestNotFoundController())->getRoot();
 					}
 				} else {
-					echo Config::isDebug() ? (string)$e : $e->getMessage();
+					print Config::isDebug() ? (string)$e : $e->getMessage();
 				}
 			} else {
-				Config::isDebug()
-					? self::debug($e->__toString(),'log entry')
-					: self::debug($e->getMessage(),'See the error log for more details');
+				Config::getExceptionController()
+						? print Factory::build(Config::getExceptionController(),'new')->run(array('e'=>$e))
+						: (Config::isDebug()
+							? self::debug($e->__toString(),'log entry')
+							: self::debug($e->getMessage(),'See the error log for more details'));
 			}
 		}
 	  public static function loadClass ($class) {
@@ -409,6 +409,7 @@ namespace bueno {
 		private static $requestedController = null;
 		private static $defaultController = null;
 		private static $defaultNamespace = null;
+		private static $exceptionController = null;
 		private static $errorLogFile = null;
 		private static $requestBase = null;
 		private static $timeZone = null;
@@ -460,6 +461,9 @@ namespace bueno {
 		public static function setDefaultController ($controller) {
 			self::$defaultController = Core::formatPath($controller,'controllers');
 		}
+		public static function setExceptionController ($controller) {
+			self::$exceptionController = Core::formatPath($controller,'controllers');
+		}
 		public static function setRequestNotFoundController ($controller) {
 			self::$requestNotFoundController = Core::formatPath($controller,'controllers');
 		}
@@ -509,6 +513,9 @@ namespace bueno {
 		}
 		public static function getDefaultController () {
 			return self::$defaultController;
+		}
+		public static function getExceptionController () {
+			return self::$exceptionController;
 		}
 		public static function getRequestNotFoundController () {
 			return self::$requestNotFoundController;

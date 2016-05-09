@@ -10,7 +10,6 @@ namespace bueno\controllers;
  */
 class Error extends \bueno\Controller {
 	public $exception;
-
   public function run (array $args=null) {
 		// log it
     $message = "Error:";
@@ -22,9 +21,8 @@ class Error extends \bueno\Controller {
     $wrap = $this->runController('bueno.SiteWrapper',array('title'=>'Problems!','body'=>$view));
     return $wrap;
   }
-
 	public function setException ($exception) {
 		$this->exception = $exception;
+		return $this;
 	}
-
 }
