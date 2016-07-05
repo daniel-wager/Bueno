@@ -3,6 +3,7 @@ namespace bueno\daos;
 use \PDO;
 use \PDOException;
 use \PDOStatement;
+use \Bueno;
 use \bueno\exceptions\CoreException;
 use \bueno\exceptions\InvalidException;
 class Database extends \bueno\Dao {
@@ -26,7 +27,7 @@ class Database extends \bueno\Dao {
 	protected function getPdo ($new=false) {
 		if ($new || !($pdo = self::getValue($this->connectionKey,self::$connections))) {
 			try {
-				$pdo = new PDO(
+				$pdo = new PdoDao(
 					$this->connectionDsn,
 					$this->user,
 					$this->pass,
@@ -98,7 +99,18 @@ class Database extends \bueno\Dao {
 		return $bool===true || $bool=='yes' ? 1 : 0;
   }
 }
-
+class PdoDao extends PDO {
+	public function query ($sql, $log=false) {
+		if ($log)
+			Bueno::debug($sql,__METHOD__.'['.__LINE__.']::sql','log');
+		return parent::query($sql);
+	}
+	public function exec ($sql, $log=false) {
+		if ($log)
+			Bueno::debug($sql,__METHOD__.'['.__LINE__.']::sql','log');
+		return parent::exec($sql);
+	}
+}
 class ResultSet extends PDOStatement {
 	private $position = 0;
 	private $count = 0;
