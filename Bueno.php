@@ -86,7 +86,8 @@ namespace bueno {
 			return 'Object:\\'.get_class($this);
 		}
 		public static function debug ($mixed, $title=null, $options=null) {
-			$options = (is_array($options) ? $options : (strstr($options,',') ? explode(',',$options) : array($options)));
+			$options = is_array($options) ? $options : explode(',',$options);
+			$exit = in_array('exit',$options);
 			$buffer = '';
 			if (in_array('trace',$options)) {
 				foreach (debug_backtrace() as $i=>$x) {
@@ -105,7 +106,8 @@ namespace bueno {
 				$buffer .= print_r($mixed,true);
 			}
 			if (in_array('log',$options)) {
-				return self::logError("[DEBUG] {$title}\n{$buffer}");
+				$success = self::logError("[DEBUG] {$title}\n{$buffer}");
+				return $exit ? exit : $success;
 			}
 			$buffer = (Config::isCli() ? null : '<pre class="debug">').PHP_EOL.$title.PHP_EOL.(in_array('textarea',$options)?"<textarea>{$buffer}</textarea>":$buffer).(Config::isCli() ? (in_array('pause',$options) ? null : PHP_EOL.PHP_EOL) : PHP_EOL.'</pre>'.PHP_EOL);
 			if (in_array('return',$options)) {
@@ -115,7 +117,8 @@ namespace bueno {
 			}
 			if (in_array('pause',$options)) {
 				Config::isCli() ? fgets(STDIN) : trigger_error("'{$option}' is only used in cli mode",E_USER_WARNING);
-			} else if (in_array('die',$options) || in_array('exit',$options)) {
+			}
+			if ($exit) {
 				exit;
 			}
 		}
