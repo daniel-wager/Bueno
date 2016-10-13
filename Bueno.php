@@ -122,6 +122,23 @@ namespace bueno {
 				exit;
 			}
 		}
+		public static function setValue ($needle, &$haystack, $value=null) {
+			if ($needle===null || !is_scalar($needle)) {
+				self::debug($needle,__METHOD__.'['.__LINE__.']::'.($needle?'Invalid':'Missing').' needle','log,trace,export');
+				throw new InvalidException('needle',$needle,'scalar');
+			}
+			if (is_null($haystack) || is_scalar($haystack)) {
+				self::debug($haystack,__METHOD__.'['.__LINE__.']::'.($haystack?'Invalid':'Missing').' haystack','log,trace,export');
+				throw new InvalidException('haystack',$haystack,array('array','object'));
+			}
+			if (is_array($haystack))
+				$haystack[$needle] = $value;
+			else if (is_object($haystack))
+				$haystack->{$needle} = $value;
+			else
+				throw new InvalidException('haystack',$haystack,array('array','object'));
+			return $haystack;
+		}
 		public static function getValue ($needle, $haystack, $default=null, $emptyToDefault=false) {
 			if ($needle===null || !is_scalar($needle)) {
 				self::debug($needle,__METHOD__.'['.__LINE__.']::'.($needle?'Invalid':'Missing').' needle','log,trace,export');
@@ -129,7 +146,7 @@ namespace bueno {
 			}
 			if ($haystack===null)
 				return $default;
-			if (is_null($haystack) || is_scalar($haystack)) {
+			if (is_scalar($haystack)) {
 				self::debug($haystack,__METHOD__.'['.__LINE__.']::'.($haystack?'Invalid':'Missing').' haystack','log,trace,export');
 				throw new InvalidException('haystack',$haystack,array('array','object','null'));
 			}
