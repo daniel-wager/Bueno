@@ -123,20 +123,25 @@ namespace bueno {
 			}
 		}
 		public static function setValue ($needle, &$haystack, $value=null) {
-			if ($needle===null || !is_scalar($needle)) {
-				self::debug($needle,__METHOD__.'['.__LINE__.']::'.($needle?'Invalid':'Missing').' needle','log,trace,export');
+			if ($needle===null || !is_scalar($needle))
 				throw new InvalidException('needle',$needle,'scalar');
-			}
-			if (is_null($haystack) || is_scalar($haystack)) {
-				self::debug($haystack,__METHOD__.'['.__LINE__.']::'.($haystack?'Invalid':'Missing').' haystack','log,trace,export');
+			if (is_null($haystack) || is_scalar($haystack))
 				throw new InvalidException('haystack',$haystack,array('array','object'));
-			}
 			if (is_array($haystack))
 				$haystack[$needle] = $value;
 			else if (is_object($haystack))
 				$haystack->{$needle} = $value;
-			else
+			return $haystack;
+		}
+		public static function unsetValue ($needle, &$haystack) {
+			if ($needle===null || !is_scalar($needle))
+				throw new InvalidException('needle',$needle,'scalar');
+			if (is_null($haystack) || is_scalar($haystack))
 				throw new InvalidException('haystack',$haystack,array('array','object'));
+			if (is_array($haystack))
+				unset($haystack[$needle]);
+			else if (is_object($haystack))
+				unset($haystack->{$needle});
 			return $haystack;
 		}
 		public static function getValue ($needle, $haystack, $default=null, $emptyToDefault=false) {
