@@ -386,10 +386,13 @@ namespace bueno {
 			if (!is_string($path) || !preg_match('/^(?P<path>.*?\.)?(?P<type>[^\.]+\.)?(?P<class>[^\.]+)$/',$path,$parts))
 				throw new InvalidException('path',$path);
 			$parts += array('path'=>null,'type'=>null,'class'=>null);
-			if ($parts['path']==null || $parts['path']=='.')
+			if ($parts['path']==null || $parts['path']=='.') {
 				$parts['path'] = $context;
-			else if ($parts['path']=='..')
+				} else if ($parts['path']=='..') {
 				$parts['path'] = preg_replace('/^(.*\.)[^\.]+\.$/','\1',$context);
+			} else if (strpos($parts['path'],'.')===0 && $context!==null) {
+				$parts['path'] = preg_replace('/\.+/','.',$context.$parts['path']);
+			}
 			$type .= '.';
 			if ($parts['type']!=$type) {
 				$parts['path'] .= $parts['type'];
@@ -753,6 +756,9 @@ namespace bueno {
 			return Core::execute(Config::getDefaultNamespace().Core::formatRequestToPath($request),$args,$this);
 		}
 		protected function formatRequest ($controller=null, array $get=null, $returnType=null) {
+			return $this->formatUrl($controller,$get,$returnType);
+		}
+		protected function formatUrl ($controller=null, array $get=null, $returnType=null) {
 			$request = $controller===null
 					? Core::formatControllerToRequest($this->fileBox->getPath())
 					: Core::formatControllerToRequest(Core::formatPath($controller,'controller',$this->fileBox->getContext()));
