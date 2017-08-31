@@ -14,6 +14,8 @@ class InvalidFormException extends \bueno\Exception {
 			throw new InvalidException('key',$key,'scalar');
 		if ($e && !($e instanceof InvalidFieldException))
 			throw new InvalidException('exception class',get_class($e),get_class(new InvalidFieldException(null)));
+		if (!is_bool($useArray))
+			throw new InvalidException('useArray',$useArray,'bool');
 		if ($useArray && !empty($this->exceptions[$key])) {
 			is_array($this->exceptions[$key])
 				? $this->exceptions[$key][] = $e
