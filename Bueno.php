@@ -2,7 +2,7 @@
 namespace {
 	use \bueno\Config;
 	use \bueno\Core;
-	class Bueno extends \bueno\Object {
+	class Bueno extends \bueno\BuenoClass {
 		public static function run ($controller=null, $args=null) {
 			Config::sortNamespacePathMap();
 			return Core::execute(($controller ? Core::formatPath($controller,'controllers') : null),$args)->getRoot();
@@ -55,7 +55,7 @@ namespace bueno {
 					.PHP_EOL."Where: {$this->file}:{$this->line}";
 			if ($isLog) {
 				foreach ($this->getTrace() as $i=>$x) {
-					if (preg_match('/^bueno\\\/',Object::getValue('class',$x)))
+					if (preg_match('/^bueno\\\/',BuenoClass::getValue('class',$x)))
 						continue;
 					$args = "";
 					foreach ($x['args'] as $xa) {
@@ -81,9 +81,9 @@ namespace bueno {
 		}
 	}
 
-	class Object {
+	class BuenoClass {
 		public function __toString () {
-			return 'Object:\\'.get_class($this);
+			return 'BuenoClass:\\'.get_class($this);
 		}
 		public static function debug ($mixed, $title=null, $options=null) {
 			$options = is_array($options) ? $options : explode(',',$options);
@@ -182,7 +182,7 @@ namespace bueno {
 		}
 	}
 
-	class Factory extends Object {
+	class Factory extends BuenoClass {
 		private static $fileBoxes = array();
 		public static function build ($path, $option='filebox', $args=null) {
 			if (!$path)
@@ -276,7 +276,7 @@ namespace bueno {
 		}
 	}
 
-	class Core extends Object {
+	class Core extends BuenoClass {
 		public static function execute ($path=false, $args=null, Controller $caller=null, $parentClass=null) {
 			// find controller
 			if (!($controller = $path) && Config::getRequestedController()) {
@@ -413,7 +413,7 @@ namespace bueno {
 		}
 	}
 
-	class Config extends Object {
+	class Config extends BuenoClass {
 		private static $typeFolderMap = array(
 				'exceptions'=>'_exceptions',
 				'controllers'=>'_controllers',
@@ -594,7 +594,7 @@ namespace bueno {
 		}
 	}
 
-	class Box extends Object implements \JsonSerializable {
+	class Box extends BuenoClass implements \JsonSerializable {
 		public function __construct ($properties=null) {
 			if ($properties) {
 				if (!is_array($properties) && !is_object($properties))
@@ -671,7 +671,7 @@ namespace bueno {
 		}
 	}
 
-	class Loader extends Object {
+	class Loader extends BuenoClass {
 		protected $fileBox = null;
 		protected function build ($path, $args=null, $option='auto') {
 			return Factory::build(($path && substr($path,0,1)=='.' ? $this->fileBox->getContext().substr($path,1) : $path),$option,$args);
@@ -777,7 +777,7 @@ namespace bueno {
 		abstract public function run (array $args=null);
 	}
 
-	class View extends Object {
+	class View extends BuenoClass {
 		private $myPath = null;
 		private $myParent = null;
 		private $myTokens = null;
@@ -840,10 +840,10 @@ namespace bueno {
 	abstract class Logic extends Loader {
 	}
 
-	abstract class Library extends Object {
+	abstract class Library extends BuenoClass {
 	}
 
-	abstract class Dao extends Object {
+	abstract class Dao extends BuenoClass {
 	}
 
 	abstract class Dto extends Box {
