@@ -349,12 +349,16 @@ namespace bueno {
 			// use default error handler for everything else
 			return false;
 		}
-		public static function handleException (\Exception $e) {
+		public static function handleException ($e=null) {
 			// log it
 			self::logError($e);
+			// return if not exception
+			if (!($e instanceof \Exception))
+				return;
+			// show offending query if debug
 			if (Config::isDebug() && ($e instanceof \PDOException) && ($sql = self::getValue(0,self::getValue('args',self::getValue(0,$e->getTrace())))))
 				self::logError("[ERROR] SQL:\t{$sql}");
-			// display it
+			// sanely display exception
 			if ($e instanceof CoreException) {
 				if (Config::showErrorAsHtml()) {
 					if (Config::isDebug()) {
