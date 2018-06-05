@@ -352,9 +352,6 @@ namespace bueno {
 		public static function handleException (\Throwable $e) {
 			// log it
 			self::logError($e);
-			// return if not exception
-			if (!($e instanceof \Exception))
-				return;
 			// show offending query if debug
 			if (Config::isDebug() && ($e instanceof \PDOException) && ($sql = self::getValue(0,self::getValue('args',self::getValue(0,$e->getTrace())))))
 				self::logError("[ERROR] SQL:\t{$sql}");
@@ -377,15 +374,15 @@ namespace bueno {
 							: self::debug($e->getMessage(),'See the error log for more details'));
 			}
 		}
-	  public static function loadClass ($class) {
-	    try {
-	      return Factory::build($class,'static');
-	    } catch (\Exception $e) {
-	      return !(($e instanceof FileNotFoundCoreException || $e instanceof FileTypeNotFoundCoreException) && count(spl_autoload_functions())>1)
-					? self::handleException($e)
-					: false;
-	    }
-	  }
+		public static function loadClass ($class) {
+			try {
+				return Factory::build($class,'static');
+			} catch (\Exception $e) {
+				return !(($e instanceof FileNotFoundCoreException || $e instanceof FileTypeNotFoundCoreException) && count(spl_autoload_functions())>1)
+						? self::handleException($e)
+						: false;
+			}
+		}
 		public static function formatPath ($path, $type, $context=null) {
 			if (!is_string($path) || !preg_match('/^(?P<path>.*?\.)?(?P<type>[^\.]+\.)?(?P<class>[^\.]+)$/',$path,$parts))
 				throw new InvalidException('path',$path);
