@@ -349,7 +349,7 @@ namespace bueno {
 			// use default error handler for everything else
 			return false;
 		}
-		public static function handleException (\Exception $e) {
+		public static function handleException (\Throwable $e) {
 			// log it
 			self::logError($e);
 			if (Config::isDebug() && ($e instanceof \PDOException) && ($sql = self::getValue(0,self::getValue('args',self::getValue(0,$e->getTrace())))))
