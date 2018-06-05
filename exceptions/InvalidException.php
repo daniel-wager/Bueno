@@ -16,6 +16,8 @@ class InvalidException extends \bueno\Exception {
 		parent::__construct(($showValueAndOptions||Config::isDebug()?$this->getLogMessage():$message));
 	}
 	private function setName ($name) {
+		if (!is_scalar($name))
+			throw new InvalidException('name',$name,'scalar');
 		$this->name = trim($name);
 	}
 	private function setValue ($value) {
