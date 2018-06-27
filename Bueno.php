@@ -47,7 +47,8 @@ namespace bueno {
 			if ($type && $type!='log' && $type!='view')
 				throw new InvalidException('type',$type,array('log','view'));
 			$isLog = $type=='log';
-			$err = "What: ".($isLog ? $this->getLogMessage() : $this->getMessage())
+			$err = '[ERROR] '.get_class($this).': '
+					.($isLog ? $this->getLogMessage() : $this->getMessage())
 					.($isLog && $this->user ? PHP_EOL."Who: {$this->user}" : null)
 					.PHP_EOL."When: ".date('Y-m-d H:m:s')
 					.($isLog && $this->path ? PHP_EOL."Path: {$this->path}" : null)
