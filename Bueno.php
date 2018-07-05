@@ -471,14 +471,20 @@ namespace bueno {
 				throw new InvalidException('showErrorAsHtml',$showErrorAsHtml,'bool');
 			self::$showErrorAsHtml = $showErrorAsHtml;
 		}
-		public static function setDefaultNamespace ($namespace, $path) {
-			self::addNamespace($namespace,$path,true);
+		public static function setDefaultNamespace ($namespace) {
+			if (empty($namespace))
+				throw new InvalidException('namespace',$namespace);
+			if (self::$defaultNamespace!=$namespace) {
+				if (!isset(self::$typeNamespacePathMap['controllers'][$namespace]))
+					throw new InvalidException('namespace',$namespace,array_keys(self::$typeNamespacePathMap['controllers']));
+				self::$defaultNamespace = $namespace;
+			}
 		}
 		public static function addNamespace ($namespace, $path, $default=false) {
 			foreach (self::$typeNamespacePathMap as $k=>$v)
 				self::$typeNamespacePathMap[$k][$namespace] = $path;
 			if ($default || (self::$defaultNamespace==null && $namespace!='bueno'))
-				self::$defaultNamespace = $namespace;
+				self::setDefaultNamespace($namespace);
 		}
 		public static function getPathForNamespace ($namespace, $type='controllers') {
 			if (!isset(self::$typeNamespacePathMap[$type]))
