@@ -191,6 +191,7 @@ namespace bueno {
 			// allow paths with ns seperator
 			if (strstr($path,'\\'))
 				$path = str_replace('\\','.',(substr($path,0,1)=='\\'?substr($path,1):$path));
+			$xFile = null;
 			if (!($fileBox = self::getValue($path,self::$fileBoxes))) {
 				// find context and type
 				preg_match('/^(.*?)([^\.]+)\.([^\.]+)$/',$path,$matches);
@@ -205,7 +206,6 @@ namespace bueno {
 				$fileBox->setContext($context);
 				if ($option!='filebox')
 					$fileBox->setClass(str_replace('.','\\','.'.$matches[1].$matches[2].'.'.ucfirst($matches[3])));
-				$xFile = null;
 				foreach (Config::getNamespacePathForType($type) as $xNamespace=>$xPath) {
 					if (preg_match("/^{$xNamespace}/",$context)>0) {
 						$xName = preg_replace('/[ _-]+/','',ucwords($matches[3]));
