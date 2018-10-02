@@ -16,28 +16,39 @@ namespace bueno {
 	use \bueno\exceptions\InvalidException;
 
 	class Exception extends \LogicException {
-		private $path;
-		private $info;
-		private $user;
-		private $logMessage;
-		public function __construct ($message, $path=null) {
-			parent::__construct($message);
-			$this->path = $path;
-			$this->extra = null;
+		protected $path;
+		protected $info;
+		protected $user;
+		protected $logMessage;
+		public function __construct ($message, $code=null, $path=null) {
+			parent::__construct($message,$code);
+			$this->setPath($path);
+		}
+		public function setPath ($x=null) {
+			if ($x!==null && !is_string($x))
+				throw new Exception("Invalid path",$x);
+			$this->path = $x;
+			return $this;
 		}
 		public function getPath () {
 			return $this->path;
 		}
-		public function setInfo ($info) {
-			$this->info = $info;
+		public function setCode ($x=null) {
+			if ($x!==null && !preg_match('/^\d+$/',$x))
+				throw new Exception("Invalid code",$x);
+			$this->code = $x;
 			return $this;
 		}
-		public function setUser ($user) {
-			$this->user = $user;
+		public function setInfo ($x) {
+			$this->info = $x;
 			return $this;
 		}
-		public function setLogMessage ($logMessage) {
-			$this->logMessage = $logMessage;
+		public function setUser ($x) {
+			$this->user = $x;
+			return $this;
+		}
+		public function setLogMessage ($x) {
+			$this->logMessage = $x;
 			return $this;
 		}
 		public function getLogMessage () {
