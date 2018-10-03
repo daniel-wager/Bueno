@@ -156,7 +156,7 @@ namespace bueno {
 				unset($haystack->{$needle});
 			return $haystack;
 		}
-		public static function getValue ($needle, $haystack, $default=null, $emptyToDefault=false) {
+		public static function getValue ($needle, $haystack=null, $default=null, $emptyToDefault=false) {
 			if ($needle===null || !is_scalar($needle)) {
 				self::debug($needle,__METHOD__.'['.__LINE__.']::'.($needle?'Invalid':'Missing').' needle','log,trace,export');
 				throw new InvalidException('needle',$needle,'scalar');
