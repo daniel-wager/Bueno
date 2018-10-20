@@ -118,7 +118,7 @@ namespace bueno {
 				$buffer .= print_r($mixed,true);
 			}
 			if (in_array('log',$options)) {
-				$success = self::logError("[DEBUG] {$title}\n{$buffer}");
+				$success = self::logDebug("[DEBUG] {$title}\n{$buffer}");
 				return $exit ? exit : $success;
 			}
 			$buffer = (Config::isCli() ? null : '<pre class="debug">').PHP_EOL.$title.PHP_EOL.(in_array('textarea',$options)?"<textarea>{$buffer}</textarea>":$buffer).(Config::isCli() ? (in_array('pause',$options) ? null : PHP_EOL.PHP_EOL) : PHP_EOL.'</pre>'.PHP_EOL);
@@ -190,6 +190,13 @@ namespace bueno {
 				$message = $message->format('log');
 			Config::getErrorLog()
 				? error_log(date('Y-m-d H:i:s T')." {$message}\n",3,Config::getErrorLog())
+				: error_log($message);
+		}
+		public static function logDebug ($message) {
+			if ($message instanceof Exception)
+				$message = $message->format('log');
+			Config::getDebugLog() || Config::getErrorLog()
+				? error_log(date('Y-m-d H:i:s T')." {$message}\n",3,(Config::getDebugLog() ?: Config::getErrorLog()))
 				: error_log($message);
 		}
 	}
@@ -452,6 +459,7 @@ namespace bueno {
 		private static $defaultNamespace = null;
 		private static $exceptionController = null;
 		private static $errorLogFile = null;
+		private static $debugLogFile = null;
 		private static $requestBase = null;
 		private static $timeZone = null;
 		private static $request = null;
@@ -537,6 +545,9 @@ namespace bueno {
 		public static function setErrorLog ($file) {
 			self::$errorLogFile = $file;
 		}
+		public static function setDebugLog ($file) {
+			self::$debugLogFile = $file;
+		}
 		public static function setTimeZone ($timeZone) {
 			self::$timeZone = $timeZone;
 		}
@@ -587,6 +598,9 @@ namespace bueno {
 		}
 		public static function getErrorLog () {
 			return self::$errorLogFile;
+		}
+		public static function getDebugLog () {
+			return self::$debugLogFile;
 		}
 		public static function isDebug () {
 			return self::$debug;
