@@ -393,6 +393,31 @@ namespace bueno {
 							: self::debug($e->getMessage(),'See the error log for more details'));
 			}
 		}
+		public static function deprecatedHandleException (\Exception $e) {
+			// log it
+			self::logError($e);
+			// show offending query if debug
+			if (Config::isDebug() && ($e instanceof \PDOException) && ($sql = self::getValue(0,self::getValue('args',self::getValue(0,$e->getTrace())))))
+				self::logError("[ERROR] SQL:\t{$sql}");
+			// sanely display exception
+			if ($e instanceof CoreException) {
+				if (Config::showErrorAsHtml()) {
+					if (Config::isDebug()) {
+						print Factory::build('bueno.controllers.Error','new')->setException($e)->run($e->tokens);
+					} else {
+						print self::execute(Config::getRequestNotFoundController())->getRoot();
+					}
+				} else {
+					print Config::isDebug() ? (string)$e : $e->getMessage();
+				}
+			} else {
+				Config::getExceptionController()
+						? print Factory::build(Config::getExceptionController(),'new')->run(array('e'=>$e))
+						: (Config::isDebug()
+							? self::debug($e->__toString(),'log entry')
+							: self::debug($e->getMessage(),'See the error log for more details'));
+			}
+		}
 		public static function loadClass ($class) {
 			try {
 				return Factory::build($class,'static');
@@ -900,8 +925,9 @@ namespace bueno {
 	if (get_magic_quotes_gpc())
 		die("Magic Quotes Config is On... exiting.");
 	// set default exception handler
+	$phpversion = explode('.',phpversion());
 	set_error_handler(array('\bueno\Core','handleError'));
-	set_exception_handler(array('\bueno\Core','handleException'));
+	set_exception_handler(array('\bueno\Core',($phpversion[0]>='7' ? 'handleException' : 'deprecatedHandleException')));
 	spl_autoload_register(array('\bueno\Core','loadClass'),true);
 	Config::init();
 }
