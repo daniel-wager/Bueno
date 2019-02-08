@@ -917,8 +917,10 @@ namespace bueno {
 				}
 			}
 		}
+		public function __toString () {
+			return self::debug(get_object_vars($this),get_class($this),'return');
+		}
 	}
-
 
 	// initializations
 	// check for magic quotes
