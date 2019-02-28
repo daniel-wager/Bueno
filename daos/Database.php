@@ -40,7 +40,7 @@ class Database extends \bueno\Dao {
 					return $pdo;
 				self::$connections[$this->connectionKey] = $pdo;
 			} catch (PDOException $e) {
-				throw new CoreException('Database',array('error'=>"{$e->getMessage()} [{$e->getFile()}:{$e->getLine()}]"));
+				throw new CoreException('Database',array('error'=>"{$e->getMessage()} dsn:{$this->connectionDsn}"));
 			}
 		}
 		return self::$connections[$this->connectionKey];
