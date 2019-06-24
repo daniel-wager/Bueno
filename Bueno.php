@@ -774,9 +774,22 @@ namespace bueno {
 		}
 	}
 
+	trait Executor {
+		protected static function execute ($cmd, array &$output=null, $code=null, $escape=true) {
+			$line = exec(($escape ? escapeshellcmd($cmd) : $cmd),$output,$code);
+			if ($code!==null && $code!==0) {
+				if (Config::isDebug())
+					self::debug(array_unshift($output,$line),__METHOD__.'['.__LINE__.']::'.$cmd,'log');
+				throw new InvalidException("system command code:{$code}",$cmd);
+			}
+			return $line;
+		}
+	}
+
 	abstract class Controller extends Loader {
 		//	TODO	forkController ($controller, $args=null, $parentClass=null) // fork process
 		use \bueno\SuperGlobals;
+		use \bueno\Executor;
 		private $forward = null;
 		private $message = null;
 		private $caller = null;
@@ -899,6 +912,7 @@ namespace bueno {
 	}
 
 	abstract class Library extends BuenoClass {
+		use \bueno\Executor;
 	}
 
 	abstract class Dao extends BuenoClass {
