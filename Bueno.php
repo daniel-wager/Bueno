@@ -775,13 +775,12 @@ namespace bueno {
 	}
 
 	trait System {
-		protected static function command ($cmd, array &$output=null, &$code=null, $escape=true) {
-			$line = exec(($escape ? escapeshellcmd($cmd) : $cmd),$output,$code);
-			if ($code!==null && $code!==0) {
-				if (Config::isDebug())
-					self::debug(array_unshift($output,$line),__METHOD__.'['.__LINE__.']::'.$cmd,'log');
-				throw new InvalidException("system command code:{$code}",$cmd);
-			}
+		protected static function command ($cmd, array &$output=null, &$return=null, $escape=true) {
+			$line = exec(($escape ? escapeshellcmd($cmd) : $cmd),$output,$return);
+			if (Config::isDebug())
+				self::debug($output,__METHOD__.'['.__LINE__.']::'.$cmd,'log');
+			if ($return!==null && $return!==0)
+				throw new InvalidException("system command return:{$return}",$cmd);
 			return $line;
 		}
 	}
