@@ -774,8 +774,8 @@ namespace bueno {
 		}
 	}
 
-	trait Executor {
-		protected static function execute ($cmd, array &$output=null, $code=null, $escape=true) {
+	trait System {
+		protected static function command ($cmd, array &$output=null, &$code=null, $escape=true) {
 			$line = exec(($escape ? escapeshellcmd($cmd) : $cmd),$output,$code);
 			if ($code!==null && $code!==0) {
 				if (Config::isDebug())
