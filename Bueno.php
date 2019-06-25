@@ -789,7 +789,7 @@ namespace bueno {
 	abstract class Controller extends Loader {
 		//	TODO	forkController ($controller, $args=null, $parentClass=null) // fork process
 		use \bueno\SuperGlobals;
-		use \bueno\Executor;
+		use \bueno\System;
 		private $forward = null;
 		private $message = null;
 		private $caller = null;
@@ -912,7 +912,7 @@ namespace bueno {
 	}
 
 	abstract class Library extends BuenoClass {
-		use \bueno\Executor;
+		use \bueno\System;
 	}
 
 	abstract class Dao extends BuenoClass {
