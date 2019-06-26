@@ -798,13 +798,13 @@ namespace bueno {
 				}
 			}
 			if ($type && $file['type']!=$type)
-				throw new InvalidException('Commission File Type',$file['type'],$type);
+				throw new InvalidException('File Type',$file['type'],$type);
 			if (!$file['tmp_name'] || !is_file($file['tmp_name']))
-				throw new InvalidException('Commission Tmp File',$file['tmp_name']);
+				throw new InvalidException('File',$file['tmp_name']);
 			if (!is_readable($file['tmp_name']))
-				throw new InvalidException('Commission Tmp File Not Readable',$file['tmp_name']);
+				throw new InvalidException('File Not Readable',$file['tmp_name']);
 			if ($file['size']<1)
-				throw new InvalidException('Commission Tmp File Size',$file['size']);
+				throw new InvalidException('File Size',$file['size']);
 			return $file;
 		}
 	}
