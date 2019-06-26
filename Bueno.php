@@ -772,14 +772,52 @@ namespace bueno {
 		protected static function getCookie ($name, $default=null) {
 			return self::getValue($name,$_COOKIE,$default);
 		}
+		protected static function getFile ($name, $type=null) {
+			if (!($file = self::getValue($name,$_FILES)))
+				return null;
+			if (!(isset($file['error']) && isset($file['size']) && isset($file['tmp_name']) && isset($file['type'])))
+				throw new InvalidException('$_FILE['.$name.'] data structure',$file);
+			if ($file['error'] && $file['error']!=UPLOAD_ERR_OK) {
+				switch ($file['error']) {
+					case UPLOAD_ERR_INI_SIZE:
+						throw new InvalidException("Upload Error:[".UPLOAD_ERR_INI_SIZE."]UPLOAD_ERR_INI_SIZE - The uploaded file exceeds php.ini size:".ini_get('upload_max_filesize'),$file);
+					case UPLOAD_ERR_FORM_SIZE:
+						throw new InvalidException("Upload Error:[".UPLOAD_ERR_FORM_SIZE."]UPLOAD_ERR_FORM_SIZE - The uploaded file exceeds HTML form size:".MAX_FILE_SIZE,$file);
+					case UPLOAD_ERR_PARTIAL:
+						throw new InvalidException("Upload Error:[".UPLOAD_ERR_PARTIAL."]UPLOAD_ERR_PARTIAL - The uploaded file was only partially uploaded",$file);
+					case UPLOAD_ERR_NO_FILE:
+						throw new InvalidException("Upload Error:[".UPLOAD_ERR_NO_FILE."]UPLOAD_ERR_NO_FILE - No file was uploaded",$file);
+					case UPLOAD_ERR_NO_TMP_DIR:
+						throw new InvalidException("Upload Error:[".UPLOAD_ERR_NO_TMP_DIR."]UPLOAD_ERR_NO_TMP_DIR - Missing a temporary folder",$file);
+					case UPLOAD_ERR_CANT_WRITE:
+						throw new InvalidException("Upload Error:[".UPLOAD_ERR_CANT_WRITE."]UPLOAD_ERR_CANT_WRITE - Failed to write file to disk",$file);
+					case UPLOAD_ERR_EXTENSION:
+						throw new InvalidException("Upload Error:[".UPLOAD_ERR_EXTENSION."]UPLOAD_ERR_EXTENSION - A PHP extension stopped the file upload. PHP does not provide a way to ascertain which extension caused the file upload to stop; examining the list of loaded extensions with phpinfo() may help",$file);
+					default:
+						throw new InvalidException('UPLOAD_ERR_{Code}',$file);
+				}
+			}
+			if ($type && $file['type']!=$type)
+				throw new InvalidException('Commission File Type',$file['type'],$type);
+			if (!$file['tmp_name'] || !is_file($file['tmp_name']))
+				throw new InvalidException('Commission Tmp File',$file['tmp_name']);
+			if (!is_readable($file['tmp_name']))
+				throw new InvalidException('Commission Tmp File Not Readable',$file['tmp_name']);
+			if ($file['size']<1)
+				throw new InvalidException('Commission Tmp File Size',$file['size']);
+			return $file;
+		}
 	}
 
 	trait System {
 		protected static function command ($cmd, array &$output=null, &$return=null, $escape=true) {
 			$line = exec(($escape ? escapeshellcmd($cmd) : $cmd),$output,$return);
-			if (Config::isDebug())
-				self::debug($output,__METHOD__.'['.__LINE__.']::'.$cmd,'log');
-			if ($return!==null && $return!==0)
+			if (Config::isDebug()) {
+				self::debug($cmd,__METHOD__.'['.__LINE__.']::cmd','log');
+				self::debug($line,__METHOD__.'['.__LINE__.']::line','log');
+				self::debug($output,__METHOD__.'['.__LINE__.']::output','log');
+			}
+			if ($output && $return!==0)
 				throw new InvalidException("system command return:{$return}",$cmd);
 			return $line;
 		}
