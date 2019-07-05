@@ -114,6 +114,8 @@ namespace bueno {
 				$buffer .= $mixed->asXML();
 			} else if (in_array('export',$options)) {
 				$buffer .= var_export($mixed,true);
+			} else if (in_array('json',$options)) {
+				$buffer .= json_encode($mixed,JSON_PRETTY_PRINT);
 			} else {
 				$buffer .= print_r($mixed,true);
 			}
@@ -812,12 +814,13 @@ namespace bueno {
 	trait System {
 		protected static function command ($cmd, array &$output=null, &$return=null, $escape=true) {
 			$line = exec(($escape ? escapeshellcmd($cmd) : $cmd),$output,$return);
-			if (Config::isDebug()) {
+			if (Config::isDebug())
 				self::debug($cmd,__METHOD__.'['.__LINE__.']::cmd','log');
+			if (Config::isDebug())
 				self::debug($line,__METHOD__.'['.__LINE__.']::line','log');
+			if (Config::isDebug())
 				self::debug($output,__METHOD__.'['.__LINE__.']::output','log');
-			}
-			if ($output && $return!==0)
+			if ($output && $return!==null && $return!==0)
 				throw new InvalidException("system command return:{$return}",$cmd);
 			return $line;
 		}
