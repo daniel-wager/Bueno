@@ -1,7 +1,8 @@
 <?php
 namespace bueno\exceptions;
 use \bueno\Config;
-class InvalidException extends \bueno\Exception {
+use \bueno\Exception;
+class InvalidException extends Exception {
 	private $name;
 	private $value;
 	private $options;
@@ -15,15 +16,15 @@ class InvalidException extends \bueno\Exception {
 				.($this->options?"\nOptions: ".implode(',',$this->options):null));
 		parent::__construct(($showValueAndOptions||Config::isDebug()?$this->getLogMessage():$message));
 	}
-	private function setName ($name) {
+	public function setName ($name) {
 		if (!is_scalar($name))
 			throw new InvalidException('name',$name,'scalar');
 		$this->name = trim($name);
 	}
-	private function setValue ($value) {
+	public function setValue ($value) {
 		$this->value = $value;
 	}
-	private function setOptions ($options) {
+	public function setOptions ($options) {
 		$this->options = (is_array($options) ? $options : ($options ? array($options) : null));
 	}
 	public function getName () {
