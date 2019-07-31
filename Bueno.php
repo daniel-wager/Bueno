@@ -694,30 +694,35 @@ namespace bueno {
 		private $path;
 		public function setType ($type) {
 			$this->type = $type;
+			return $this;
 		}
 		public function getType () {
 			return $this->type;
 		}
 		public function setClass ($class) {
 			$this->class = $class;
+			return $this;
 		}
 		public function getClass () {
 			return $this->class;
 		}
 		public function setFile ($file) {
 			$this->file = $file;
+			return $this;
 		}
 		public function getFile () {
 			return $this->file;
 		}
 		public function setContext ($context) {
 			$this->context = $context;
+			return $this;
 		}
 		public function getContext () {
 			return $this->context;
 		}
 		public function setPath ($path) {
 			$this->path = $path;
+			return $this;
 		}
 		public function getPath () {
 			return $this->path;
@@ -741,6 +746,7 @@ namespace bueno {
 		}
 		public function setFileBox (FileBox $fileBox) {
 			$this->fileBox = $fileBox;
+			return $this;
 		}
 		public function getInfo ($type=null) {
 			return $this->fileBox->{"get".ucfirst($type)}();
@@ -835,18 +841,21 @@ namespace bueno {
 		private $caller = null;
 		public function setForward ($controller) {
 			$this->forward = Core::formatPath($controller,'controllers',$this->fileBox->getContext());
+			return $this;
 		}
 		public function getForward () {
 			return $this->forward;
 		}
 		public function setMessage ($message) {
 			$this->message = $message;
+			return $this;
 		}
 		public function getMessage () {
 			return $this->message;
 		}
 		public function setCaller ($caller) {
 			$this->caller = $caller;
+			return $this;
 		}
 		public function getCaller () {
 			return $this->caller;
@@ -910,6 +919,7 @@ namespace bueno {
 			if (is_object($value) && $value instanceof View)
 				$value->parent = $this;
 			$this->myTokens->{$name} = $value;
+			return $this;
 		}
 		public function __get ($name) {
 			return self::getValue($name,$this->myTokens);
@@ -936,6 +946,7 @@ namespace bueno {
 		public function setTokens ($tokens) {
 			if (is_array($tokens) || is_object($tokens))
 				$this->myTokens = $tokens;
+			return $this;
 		}
 		public function getTokens () {
 			return $this->myTokens;
