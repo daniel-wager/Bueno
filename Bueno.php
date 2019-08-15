@@ -172,7 +172,7 @@ namespace bueno {
 			$value = is_array($haystack)
 					? (isset($haystack[$needle]) ? $haystack[$needle] : $default)
 					: (isset($haystack->{$needle}) ? $haystack->{$needle} : $default);
-			if (is_string($value) && !Config::isCli())
+			if (is_string($value))
 				$value = trim($value);
 			return $emptyToDefault && empty($value) && !is_bool($value) && $value!==0 && $value!=='0' ? $default : $value;
 		}
