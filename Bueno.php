@@ -681,8 +681,14 @@ namespace bueno {
 		public function __toString () {
 			return print_r($this,true);
 		}
-		public function jsonSerialize () {
+		public function __toArray () {
 			return get_object_vars($this);
+		}
+		public function __toJson () {
+			return json_encode(get_object_vars($this));
+		}
+		public function jsonSerialize () {
+			return $this->__toArray();
 		}
 	}
 
@@ -769,10 +775,17 @@ namespace bueno {
 				? Core::makeSafe($value)
 				: $value;
 		}
-		protected static function getSession ($name, $default=null, $autoStart=false) {
-			if (!session_id() && (!$autoStart || !session_start()))
+		protected static function getSession ($name, $default=null, $autoStart=true) {
+			if (!session_id() && !($autoStart && session_start()))
 				throw new InvalidException('Session',session_id());
 			return self::getValue($name,$_SESSION,$default);
+		}
+		protected static function setSession ($name, $value=null, $autoStart=true) {
+			if (!session_id() && !($autoStart && session_start()))
+				throw new InvalidException('Session',session_id());
+			if (empty($name) || !is_string($name))
+				throw new InvalidException('name',$name);
+			return $_SESSION[$name] = $value;
 		}
 		protected static function getServer ($name, $default=null) {
 			return self::getValue($name,$_SERVER,$default);
