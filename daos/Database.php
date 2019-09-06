@@ -13,6 +13,7 @@ class Database extends \bueno\Dao {
 	private $persistant = false;
 	private $user;
 	private $pass;
+	private $options;
 	public function __construct ($dsn, $user, $pass, $persistant=false) {
 		if (!defined('DATABASE_DATE_FORMAT'))
 			define('DATABASE_DATE_FORMAT','Y-m-d');
@@ -23,23 +24,26 @@ class Database extends \bueno\Dao {
 		$this->pass = $pass;
 		$this->connectionDsn = $dsn;
 		$this->connectionKey = "{$this->connectionDsn}:{$this->user}:{$this->persistant}";
+		$this->options = array(
+			PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION
+			,PDO::ATTR_STATEMENT_CLASS=>array('\bueno\daos\ResultSet')
+			,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_OBJ);
+		if (!strstr($dsn,'sqlsrv:'))
+			$this->options[PDO::ATTR_PERSISTENT] = $this->persistant;
 	}
 	protected function getPdo ($new=false) {
 		if ($new || !($pdo = self::getValue($this->connectionKey,self::$connections))) {
 			try {
 				$pdo = new PdoDao(
-					$this->connectionDsn,
-					$this->user,
-					$this->pass,
-					array(
-						PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION
-						,PDO::ATTR_PERSISTENT=>$this->persistant
-						,PDO::ATTR_STATEMENT_CLASS=>array('\bueno\daos\ResultSet')
-						,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_OBJ));
+					$this->connectionDsn
+					,$this->user
+					,$this->pass
+					,$this->options);
 				if ($new)
 					return $pdo;
 				self::$connections[$this->connectionKey] = $pdo;
 			} catch (PDOException $e) {
+				self::logError($e);
 				throw new CoreException('Database',array('error'=>"{$e->getMessage()} dsn:{$this->connectionDsn}"));
 			}
 		}
