@@ -690,6 +690,12 @@ namespace bueno {
 		public function jsonSerialize () {
 			return $this->__toArray();
 		}
+		public function setNulls () {
+			if (($vars = get_object_vars($this)))
+				foreach ($vars as $k=>$v)
+					$this->{$k} = empty($v) ? null : $v;
+			return $this;
+		}
 	}
 
 	class FileBox extends Box {
@@ -997,6 +1003,9 @@ namespace bueno {
 		}
 		public function __toString () {
 			return self::debug(get_object_vars($this),get_class($this),'return');
+		}
+		public function getProperties () {
+			return get_object_vars($this);
 		}
 	}
 
