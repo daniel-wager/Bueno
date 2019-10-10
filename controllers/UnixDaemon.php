@@ -1,21 +1,18 @@
 <?php
 namespace bueno\controllers;
-
 use \bueno\excpetions\InvalidException;
 use \bueno\Config;
-
 // setup signal handling
 pcntl_signal(SIGTERM,'\bueno\controllers\UnixDaemon::handleSignal');
 pcntl_signal(SIGHUP,'\bueno\controllers\UnixDaemon::handleSignal');
 pcntl_signal(SIGINT,'\bueno\controllers\UnixDaemon::handleSignal');
 pcntl_signal(SIGUSR1,'\bueno\controllers\UnixDaemon::handleSignal');
-
+// class
 abstract class UnixDaemon extends \bueno\Controller {
 	protected $fork = true;
 	protected $maxProcesses = 1;
 	protected $runInterval = 1;
-
-	public static function handleSignal ($signal) {
+	final public static function handleSignal ($signal) {
 		$pid = getmypid();
 		try {
 			switch ($signal) {
@@ -23,6 +20,7 @@ abstract class UnixDaemon extends \bueno\Controller {
 				case SIGHUP:
 				case SIGINT:
 					self::stop();
+					break;
 				case SIGUSR1:
 					self::logError('[INFO] '.__METHOD__.'['.$pid.']::SIGUSR1');
 					break;
@@ -33,8 +31,7 @@ abstract class UnixDaemon extends \bueno\Controller {
 			self::logError('[ERROR] '.__METHOD__.'['.$pid.'] '.$e);
 		}
 	}
-
-	public function run (array $args=null) {
+	final public function run (array $args=null) {
 		self::logError('[INFO] '.__METHOD__.'['.getmypid().'] starting...');
 		if (!Config::isCli())
 			throw new Exception('Daemon must be CLI');
@@ -81,11 +78,9 @@ abstract class UnixDaemon extends \bueno\Controller {
 			sleep($this->runInterval);
 		}
 	}
-
-	protected static function stop () {
+	final protected static function stop () {
 		self::logError('[INFO] '.__METHOD__.'['.getmypid().'] exiting...');
 		exit;
 	}
-
 	abstract protected function runDaemon (array $args=null);
 }
