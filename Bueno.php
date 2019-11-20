@@ -158,7 +158,7 @@ namespace bueno {
 				unset($haystack->{$needle});
 			return $haystack;
 		}
-		public static function getValue ($needle=null, $haystack=null, $default=null, $emptyToDefault=false) {
+		public static function getValue ($needle=null, $haystack=null, $default=null, $emptyToDefault=false, $doTrim=true) {
 			if ($needle===null || $haystack===null)
 				return $default;
 			if (!is_scalar($needle)) {
@@ -172,7 +172,7 @@ namespace bueno {
 			$value = is_array($haystack)
 					? (isset($haystack[$needle]) ? $haystack[$needle] : $default)
 					: (isset($haystack->{$needle}) ? $haystack->{$needle} : $default);
-			if (is_string($value))
+			if ($doTrim && is_string($value))
 				$value = trim($value);
 			return $emptyToDefault && empty($value) && !is_bool($value) && $value!==0 && $value!=='0' ? $default : $value;
 		}
@@ -941,7 +941,7 @@ namespace bueno {
 			return $this;
 		}
 		public function __get ($name) {
-			return self::getValue($name,$this->myTokens);
+			return self::getValue($name,$this->myTokens,null,false,!Config::isCli());
 		}
 		public function __toString () {
 			ob_start();
