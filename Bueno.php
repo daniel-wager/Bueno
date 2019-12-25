@@ -204,7 +204,7 @@ namespace bueno {
 	}
 
 	class Factory extends BuenoClass {
-		private static $fileBoxes = array();
+		private static $fileBoxes = [];
 		public static function build ($path, $option='filebox', $args=null) {
 			if (!$path)
 				throw new InvalidException('path',$path);
@@ -300,8 +300,8 @@ namespace bueno {
 	class Core extends BuenoClass {
 		public static function execute ($path=false, $args=null, Controller $caller=null, $parentClass=null) {
 			// find controller
-			if (!($controller = $path) && Config::getRequestedController()) {
-				$controller = Config::getRequestedController();
+			if (!($controller = $path) && Config::getRequestController()) {
+				$controller = Config::getRequestController();
 				// find mapped controller
 				if (Config::hasRequestControllerMap()) {
 					foreach (Config::getRequestControllerMap() as $pattern=>$useController) {
@@ -316,7 +316,7 @@ namespace bueno {
 				$controller = Config::getDefaultController();
 			// set up cli args
 			if (!$args && !$caller && Config::isCli())
-				$args = array_slice(self::getValue('argv',$_SERVER,array()),2);
+				$args = array_slice(self::getValue('argv',$_SERVER,[]),2);
 			//	get controller view
 			if (!$view = self::executeController($controller,$args,null,$caller,$parentClass))
 				throw new CoreException('ViewNotFound',array('controller'=>$controller));
@@ -453,26 +453,26 @@ namespace bueno {
 
 	class Config extends BuenoClass {
 		private static $typeFolderMap = array(
-				'exceptions'=>'_exceptions',
-				'controllers'=>'_controllers',
-				'logic'=>'_logic',
-				'daos'=>'_daos',
-				'dtos'=>'_dtos',
-				'views'=>'_views',
-				'libs'=>'_libs',
-				'includes'=>'_incs');
+				'exceptions'=>'_exceptions'
+				,'controllers'=>'_controllers'
+				,'logic'=>'_logic'
+				,'daos'=>'_daos'
+				,'dtos'=>'_dtos'
+				,'views'=>'_views'
+				,'libs'=>'_libs'
+				,'includes'=>'_incs');
 		private static $typeNamespacePathMap = array(
-				'exceptions'=>array(),
-				'controllers'=>array(),
-				'logic'=>array(),
-				'daos'=>array(),
-				'dtos'=>array(),
-				'views'=>array(),
-				'libs'=>array(),
-				'includes'=>array());
-		private static $requestControllerMap = array();
+				'exceptions'=>[]
+				,'controllers'=>[]
+				,'logic'=>[]
+				,'daos'=>[]
+				,'dtos'=>[]
+				,'views'=>[]
+				,'libs'=>[]
+				,'includes'=>[]);
+		private static $requestControllerMap = [];
 		private static $requestNotFoundController = 'bueno.controllers.FourOFour';
-		private static $requestedController = null;
+		private static $requestController = null;
 		private static $defaultController = null;
 		private static $defaultNamespace = null;
 		private static $exceptionController = null;
@@ -501,12 +501,14 @@ namespace bueno {
 				self::setShowErrorAsHtml(!self::isCli());
 				self::$init = true;
 			}
+			return true;
 		}
 		# for application use
 		public static function setShowErrorAsHtml ($showErrorAsHtml=true) {
 			if (!is_bool($showErrorAsHtml))
 				throw new InvalidException('showErrorAsHtml',$showErrorAsHtml,'bool');
 			self::$showErrorAsHtml = $showErrorAsHtml;
+			return true;
 		}
 		public static function setDefaultNamespace ($namespace) {
 			if (empty($namespace))
@@ -516,12 +518,14 @@ namespace bueno {
 					throw new InvalidException('namespace',$namespace,array_keys(self::$typeNamespacePathMap['controllers']));
 				self::$defaultNamespace = $namespace;
 			}
+			return true;
 		}
 		public static function addNamespace ($namespace, $path, $default=false) {
 			foreach (self::$typeNamespacePathMap as $k=>$v)
 				self::$typeNamespacePathMap[$k][$namespace] = $path;
 			if ($default || (self::$defaultNamespace==null && $namespace!='bueno'))
 				self::setDefaultNamespace($namespace);
+			return true;
 		}
 		public static function getPathForNamespace ($namespace, $type='controllers') {
 			if (!isset(self::$typeNamespacePathMap[$type]))
@@ -530,44 +534,56 @@ namespace bueno {
 		}
 		public static function addRequestControllerMapping ($pattern, $controller) {
 			self::$requestControllerMap[$pattern] = $controller;
+			return true;
 		}
 		public static function setDefaultController ($controller) {
 			self::$defaultController = Core::formatPath($controller,'controllers');
+			return true;
 		}
 		public static function setExceptionController ($controller) {
 			self::$exceptionController = Core::formatPath($controller,'controllers');
+			return true;
 		}
 		public static function setRequestNotFoundController ($controller) {
 			self::$requestNotFoundController = Core::formatPath($controller,'controllers');
+			return true;
 		}
 		public static function setRequestBase ($requestBase=null) {
 			self::$requestBase = ($x = trim($requestBase,'/')) ? "/{$x}" : null;
+			return true;
 		}
 		public static function setRequest ($request=null) {
 			if ($request && substr_count($request,'.')==1)
 				list ($request,self::$requestReturnType) = explode('.',$request);
 			if ($request && ($request = preg_replace('=/+=','/',$request)) && $request!='/') {
 				self::$request = $request;
-				self::$requestedController = Core::formatRequestToPath(preg_replace('=\/\d+$=','',$request));
+				self::$requestController = Core::formatRequestToPath(preg_replace('=\/\d+$=','',$request));
 			}
+			return true;
 		}
 		public static function setDebug ($debug=false) {
 			self::$debug = (bool) $debug;
+			return true;
 		}
 		public static function setDev ($dev=false) {
 			self::$dev = (bool) $dev;
+			return true;
 		}
 		public static function setStage ($stage=false) {
 			self::$stage = (bool) $stage;
+			return true;
 		}
 		public static function setErrorLog ($file) {
 			self::$errorLogFile = $file;
+			return true;
 		}
 		public static function setDebugLog ($file) {
 			self::$debugLogFile = $file;
+			return true;
 		}
 		public static function setTimeZone ($timeZone) {
 			self::$timeZone = $timeZone;
+			return true;
 		}
 
 		# for framework use
@@ -584,8 +600,8 @@ namespace bueno {
 		public static function getRequestReturnType () {
 			return self::$requestReturnType;
 		}
-		public static function getRequestedController () {
-			return self::$requestedController ? self::getDefaultNamespace().self::$requestedController : null;
+		public static function getRequestController () {
+			return self::$requestController ? self::getDefaultNamespace().self::$requestController : null;
 		}
 		public static function getDefaultController () {
 			return self::$defaultController;
@@ -877,7 +893,7 @@ namespace bueno {
 			return new View(Core::formatPath(($path?:basename(str_replace('\\','/',$this->fileBox->getClass()))),'views',$this->fileBox->getContext()),$tokens);
 		}
 		protected static function getRequestController () {
-			return Config::getRequestedController() ?: Config::getDefaultController();
+			return Config::getRequestController() ?: Config::getDefaultController();
 		}
 		protected function runController ($controller, $args=null, $parentClass=null) {
 			return Core::execute(Core::formatPath($controller,'controllers',$this->fileBox->getContext()),$args,$this,$parentClass);
