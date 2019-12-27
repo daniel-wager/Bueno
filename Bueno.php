@@ -688,10 +688,13 @@ namespace bueno {
 			return print_r($this,true);
 		}
 		public function __toArray () {
-			return get_object_vars($this);
+			$x = [];
+			foreach (get_object_vars($this) as $k=>$v)
+				$x[$k] = $this->__get($k);
+			return $x;
 		}
 		public function __toJson () {
-			return json_encode(get_object_vars($this));
+			return json_encode($this->__toArray());
 		}
 		public function jsonSerialize () {
 			return $this->__toArray();
