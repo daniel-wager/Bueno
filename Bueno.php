@@ -673,16 +673,16 @@ namespace bueno {
 		public function __set ($name, $value=null) {
 			if (empty($name) || !is_string($name))
 				throw new InvalidException('name',$name,'type string');
-			if (!($method = 'set'.ucfirst($name)) || !method_exists($this,$method))
-				throw new InvalidException('method',$method,preg_replace(array('/^,+/','/,+/'),array('',','),implode(',',array_map(function($x){ return preg_match('/^set/',$x) ? $x : null; },get_class_methods($this)))));
-			return $this->{$method}($value);
+			return (($method = 'set'.ucfirst($name)) && method_exists($this,$method))
+					? $this->{$method}($value)
+					: $this->{$name} = $value;
 		}
 		public function __get ($name) {
 			if (empty($name) || !is_string($name))
 				throw new InvalidException('name',$name,'type string');
-			if (!($method = 'get'.ucfirst($name)) || !method_exists($this,$method))
-				throw new InvalidException('method',$method,preg_replace(array('/^,+/','/,+/'),array('',','),implode(',',array_map(function($x){ return preg_match('/^get/',$x) ? $x : null; },get_class_methods($this)))));
-			return $this->{$method}();
+			return (($method = 'get'.ucfirst($name)) && method_exists($this,$method))
+					? $this->{$method}()
+					: $this->{$name};
 		}
 		public function __toString () {
 			return print_r($this,true);
