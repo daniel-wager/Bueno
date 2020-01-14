@@ -1019,9 +1019,6 @@ namespace bueno {
 	}
 
 	// initializations
-	// check for magic quotes
-	if (get_magic_quotes_gpc())
-		die("Magic Quotes Config is On... exiting.");
 	// set default exception handler
 	$phpversion = explode('.',phpversion());
 	set_error_handler(array('\bueno\Core','handleError'));
