@@ -889,11 +889,14 @@ namespace bueno {
 		protected static function getRequestController () {
 			return Config::getRequestController() ?: Config::getDefaultController();
 		}
+		protected static function formatRequestController ($request) {
+			return Config::getDefaultNamespace().Core::formatRequestToPath($request);
+		}
 		protected function runController ($controller, $args=null, $parentClass=null) {
 			return Core::execute(Core::formatPath($controller,'controllers',$this->fileBox->getContext()),$args,$this,$parentClass);
 		}
 		protected function runRequest ($request, $args=null) {
-			return Core::execute(Config::getDefaultNamespace().Core::formatRequestToPath($request),$args,$this);
+			return Core::execute(self::formatRequestController($request),$args,$this);
 		}
 		protected function formatRequest ($controller=null, array $get=null, $returnType=null) {
 			return $this->formatUrl($controller,$get,$returnType);
