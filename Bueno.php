@@ -368,15 +368,7 @@ namespace bueno {
 				self::logError("[ERROR] SQL:\t{$sql}");
 			// sanely display exception
 			if ($e instanceof CoreException) {
-				if (Config::showErrorAsHtml()) {
-					if (Config::isDebug()) {
-						print Factory::build('bueno.controllers.Error','new')->setException($e)->run($e->tokens);
-					} else {
-						print self::execute(Config::getRequestNotFoundController())->getRoot();
-					}
-				} else {
-					print Config::isDebug() ? (string)$e : $e->getMessage();
-				}
+				print self::execute(Config::getRequestNotFoundController())->getRoot();
 			} else {
 				Config::getExceptionController()
 						? print Factory::build(Config::getExceptionController(),'new')->run(array('e'=>$e))
