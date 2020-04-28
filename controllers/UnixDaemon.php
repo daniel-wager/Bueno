@@ -72,10 +72,13 @@ abstract class UnixDaemon extends \bueno\Controller {
 				$this->runDaemon($args);
 			} catch (\Exception $e) {
 				self::logError("[ERROR] {$e->getMessage()} ({$e->getFile()}:{$e->getLine()})");
-				// self::stop();
 			}
-			self::logError('[INFO] '.__METHOD__."[{$pid}] sleeping...");
-			sleep($this->runInterval);
+			if (Config::isDev()) {
+				self::stop();
+			} else {
+				self::logError('[INFO] '.__METHOD__."[{$pid}] sleeping...");
+				sleep($this->runInterval);
+			}
 		}
 	}
 	final protected static function stop () {
