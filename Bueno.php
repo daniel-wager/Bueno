@@ -190,14 +190,14 @@ namespace bueno {
 			if ($message instanceof Exception)
 				$message = $message->format('log');
 			Config::getErrorLog()
-				? error_log(date('Y-m-d H:i:s T')." {$message}\n",3,Config::getErrorLog())
+				? error_log(date(DATE_W3C)." {$message}\n",3,Config::getErrorLog())
 				: error_log($message);
 		}
 		public static function logDebug ($message) {
 			if ($message instanceof Exception)
 				$message = $message->format('log');
 			Config::getDebugLog() || Config::getErrorLog()
-				? error_log("{$message}\n",3,(Config::getDebugLog() ?: Config::getErrorLog()))
+				? error_log(date(DATE_W3C)." {$message}\n",3,(Config::getDebugLog() ?: Config::getErrorLog()))
 				: error_log($message);
 		}
 	}
