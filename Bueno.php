@@ -24,9 +24,21 @@ namespace bueno {
 			parent::__construct($message,$code);
 			$this->setPath($path);
 		}
+		public function setMessage ($x=null) {
+			if ($x!==null && !is_string($x))
+				throw new InvalidArgumentException("message");
+			$this->message = $x;
+			return $this;
+		}
+		public function appendMessage ($x=null) {
+			if ($x!==null && !is_string($x))
+				throw new InvalidArgumentException("message");
+			$this->message .= " {$x}";
+			return $this;
+		}
 		public function setPath ($x=null) {
 			if ($x!==null && !is_string($x))
-				throw new Exception("Invalid path",$x);
+				throw new InvalidArgumentException("path");
 			$this->path = $x;
 			return $this;
 		}
@@ -35,7 +47,7 @@ namespace bueno {
 		}
 		public function setCode ($x=null) {
 			if ($x!==null && !preg_match('/^\d+$/',$x))
-				throw new Exception("Invalid code",$x);
+				throw new InvalidArgumentException("code");
 			$this->code = $x;
 			return $this;
 		}
@@ -56,7 +68,7 @@ namespace bueno {
 		}
 		public function format ($type=null) {
 			if ($type && $type!='log' && $type!='view')
-				throw new InvalidException('type',$type,array('log','view'));
+				throw new InvalidArgumentException("type;['log','view']");
 			$isLog = $type=='log';
 			$err = '[ERROR]['.get_class($this).']'.($isLog ? $this->getLogMessage() : $this->getMessage())
 					.($isLog && $this->user ? " who:{$this->user}" : null)
