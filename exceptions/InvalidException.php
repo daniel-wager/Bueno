@@ -10,7 +10,7 @@ class InvalidException extends Exception {
 		$this->setName($name);
 		$this->setValue($value);
 		$this->setOptions($options);
-		$message = ($this->value?'Invalid ':'Missing ').$this->name;
+		$message = (empty($this->value) && !is_bool($this->value) && !is_numeric($this->value) ? 'Missing' : 'Invalid').' '.$this->name;
 		$this->setLogMessage($message
 				.($this->value?" value:".print_r($this->value,true):'')
 				.($this->options?" options:".implode(',',$this->options):null));
