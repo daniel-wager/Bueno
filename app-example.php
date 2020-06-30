@@ -2,11 +2,11 @@
 namespace com\company\project;
 
 // load and use
-require_once '.bueno/Bueno.php';
+require_once __DIR__.'/Bueno.php';
 use \bueno\Config;
 
 // setup paths
-Config::addNamespace('com.company.project','.project',true);
+//Config::addNamespace('com.company.project','.project',true);
 //Config::addNamespace('com.company.project2','.project2');
 
 // setup controllers
