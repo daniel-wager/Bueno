@@ -206,9 +206,11 @@ namespace bueno {
 				: error_log($message);
 		}
 		public static function logDebug ($message) {
+			if (!Config::isDebug())
+				return null;
 			if ($message instanceof Exception)
 				$message = $message->format('log');
-			Config::getDebugLog() || Config::getErrorLog()
+			return Config::getDebugLog() || Config::getErrorLog()
 				? error_log(date(DATE_W3C)." {$message}\n",3,(Config::getDebugLog() ?: Config::getErrorLog()))
 				: error_log($message);
 		}
@@ -497,7 +499,7 @@ namespace bueno {
 				self::setTimeZone(date_default_timezone_get());
 				self::setStage(self::getValue('SERVER_STAGE',$_SERVER,false));
 				self::setDev(self::getValue('SERVER_DEV',$_SERVER,self::isStage()));
-				self::setDebug(self::isDev());
+				self::setDebug((self::isDev() || in_array('--debug',self::getValue('argv',$_SERVER,[]))));
 				self::addNamespace('bueno',__DIR__,false);
 				self::setRequestBase(self::getValue('SCRIPT_NAME',$_SERVER));
 				self::setRequest((self::isCli()?self::getValue(1,self::getValue('argv',$_SERVER)):self::getValue('PATH_INFO',$_SERVER)));
