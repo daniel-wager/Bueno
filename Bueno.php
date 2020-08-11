@@ -935,11 +935,12 @@ namespace bueno {
 	}
 
 	class View extends BuenoClass {
-		private $myPath = null;
+		private $myFile = null;
 		private $myParent = null;
 		private $myTokens = null;
 		public function __construct ($path, $tokens=null) {
-			$this->myPath = $path;
+			if (!$path || !($this->myFile = Factory::build($path,'filebox')))
+				throw new InvalidException('path',$path);
 			if (!$tokens) {
 				$this->myTokens = new \stdClass;
 			} else if (is_array($tokens)) {
@@ -964,7 +965,7 @@ namespace bueno {
 		public function __toString () {
 			ob_start();
 			try {
-				require(Factory::build($this->myPath,'filebox')->getFile());
+				require($this->getFile());
 			} catch (\Exception $e) {
 				Core::handleException($e);
 			}
@@ -972,8 +973,11 @@ namespace bueno {
 			ob_end_clean();
 			return $x;
 		}
-		public function getFilePath () {
-			return $this->myPath;
+		public function getFile () {
+			return $this->myFile->getFile();
+		}
+		public function getPath () {
+			return $this->myFile->getPath();
 		}
 		public function getRoot () {
 			return $this->myParent
