@@ -352,21 +352,6 @@ namespace bueno {
 			// return only views
 			return $view instanceof View ? $view : null;
 		}
-		public static function makeSafe ($value) {
-			if (is_array($value)) {
-				foreach ($value as $k=>$v)
-					$value[$k] = self::makeSafe($v);
-				return $value;
-			} else if (is_object($value)) {
-				foreach ($value as $k=>$v)
-					$value->{$k} = self::makeSafe($v);
-				return $value;
-			} else if (is_null($value) || is_bool($value)) {
-				return $value;
-			} else {
-				return htmlentities(trim($value),ENT_NOQUOTES);
-			}
-		}
 		public static function handleError ($number, $message, $file=null, $line=null, array $context=null) {
 			//256	E_USER_ERROR	512	E_USER_WARNING	1024	E_USER_NOTICE
 			// log it
@@ -450,9 +435,9 @@ namespace bueno {
 		}
 		public static function formatControllerToRequest ($controller) {
 			return Config::getRequestBase().preg_replace(
-					array('/^'.Config::getDefaultNamespace().'/','/controllers?\./','/\.+/','/^([^\/]{1})/'),
-					array('','','/','/\1'),
-					$controller);
+							['/^'.Config::getDefaultNamespace().'/','/\.+/','/^([^\/]{1})/',],
+							['','/','/\1'],
+							preg_replace_callback('/controllers?\.(\w*)/',function($m){ return lcfirst($m[1]); },$controller));
 		}
 	}
 
@@ -667,13 +652,13 @@ namespace bueno {
 	}
 
 	class Box extends BuenoClass implements \JsonSerializable {
-		public function __construct ($properties=null) {
+		public function __construct ($properties=null, $validate=true) {
 			if ($properties) {
 				if (!is_array($properties) && !is_object($properties))
 					throw new InvalidException('properties',$properties,array('object','array'));
 				foreach ($this as $k=>$v)
 					if (($v = self::getValue($k,$properties)))
-						$this->__set($k,$v);
+						$validate ? $this->__set($k,$v) : $this->{$k} = $v;
 			}
 		}
 		public function __set ($name, $value=null) {
@@ -691,7 +676,7 @@ namespace bueno {
 					: $this->{$name};
 		}
 		public function __toString () {
-			return print_r($this,true);
+			return get_class($this).":".json_encode($this->__toArray(),JSON_PRETTY_PRINT);
 		}
 		public function __toArray () {
 			$x = [];
@@ -781,19 +766,34 @@ namespace bueno {
 	}
 
 	trait SuperGlobals {
+		protected static function makeSafe ($value) {
+			if (is_array($value)) {
+				foreach ($value as $k=>$v)
+					$value[$k] = self::makeSafe($v);
+				return $value;
+			} else if (is_object($value)) {
+				foreach ($value as $k=>$v)
+					$value->{$k} = self::makeSafe($v);
+				return $value;
+			} else if (is_null($value) || is_bool($value)) {
+				return $value;
+			} else {
+				return htmlentities(trim($value),ENT_NOQUOTES);
+			}
+		}
 		protected static function getGet ($name, $default=null, $emptyToDefault=true, $makeSafe=true) {
 			return (($value = self::getValue($name,$_GET,$default,$emptyToDefault)) && $makeSafe && $value!=$default)
-				? Core::makeSafe($value)
+				? self::makeSafe($value)
 				: $value;
 		}
 		protected static function getPost ($name, $default=null, $emptyToDefault=true, $makeSafe=true) {
 			return (($value = self::getValue($name,$_POST,$default,$emptyToDefault)) && $makeSafe && $value!=$default)
-				? Core::makeSafe($value)
+				? self::makeSafe($value)
 				: $value;
 		}
 		protected static function getRequest ($name, $default=null, $emptyToDefault=true, $makeSafe=true) {
 			return (($value = self::getValue($name,$_REQUEST,$default,$emptyToDefault)) && $makeSafe && $value!=$default)
-				? Core::makeSafe($value)
+				? self::makeSafe($value)
 				: $value;
 		}
 		protected static function getSession ($name, $default=null, $autoStart=true) {
@@ -935,12 +935,11 @@ namespace bueno {
 	}
 
 	class View extends BuenoClass {
-		private $myFile = null;
+		private $myPath = null;
 		private $myParent = null;
 		private $myTokens = null;
 		public function __construct ($path, $tokens=null) {
-			if (!$path || !($this->myFile = Factory::build($path,'filebox')))
-				throw new InvalidException('path',$path);
+			$this->myPath = $path;
 			if (!$tokens) {
 				$this->myTokens = new \stdClass;
 			} else if (is_array($tokens)) {
@@ -965,7 +964,7 @@ namespace bueno {
 		public function __toString () {
 			ob_start();
 			try {
-				require($this->getFile());
+				require(Factory::build($this->myPath,'filebox')->getFile());
 			} catch (\Exception $e) {
 				Core::handleException($e);
 			}
@@ -973,11 +972,8 @@ namespace bueno {
 			ob_end_clean();
 			return $x;
 		}
-		public function getFile () {
-			return $this->myFile->getFile();
-		}
-		public function getPath () {
-			return $this->myFile->getPath();
+		public function getFilePath () {
+			return $this->myPath;
 		}
 		public function getRoot () {
 			return $this->myParent
@@ -1011,24 +1007,6 @@ namespace bueno {
 	}
 
 	abstract class Dto extends Box {
-		public function __construct ($record=null, $validate=true) {
-			if ($record) {
-				if ($validate) {
-					parent::__construct($record);
-				} else {
-					if (!is_object($record) && !is_array($record))
-						throw new InvalidException('record type',$record,array('array','object'));
-					foreach ($this as $k=>$v)
-						$this->{$k} = self::getValue($k,$record);
-				}
-			}
-		}
-		public function __toString () {
-			return self::debug(get_object_vars($this),get_class($this),'return');
-		}
-		public function getProperties () {
-			return get_object_vars($this);
-		}
 	}
 
 	// initializations
