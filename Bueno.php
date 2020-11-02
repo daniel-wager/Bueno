@@ -684,6 +684,12 @@ namespace bueno {
 				$x[$k] = $this->__get($k);
 			return $x;
 		}
+		public function __toObject () {
+			$x = new \stdClass;
+			foreach (get_object_vars($this) as $k=>$v)
+				$x->{$k} = $this->__get($k);
+			return $x;
+		}
 		public function __toJson () {
 			return json_encode($this->__toArray());
 		}
