@@ -108,6 +108,22 @@ namespace bueno {
 		public function __toString () {
 			return 'BuenoClass:\\'.get_class($this);
 		}
+		public static function logError ($message) {
+			if ($message instanceof Exception)
+				$message = $message->format('log');
+			Config::getErrorLog()
+				? error_log(date(DATE_W3C)." {$message}\n",3,Config::getErrorLog())
+				: error_log($message);
+		}
+		public static function logDebug ($message) {
+			if (!Config::isDebug())
+				return null;
+			if ($message instanceof Exception)
+				$message = $message->format('log');
+			return Config::getDebugLog() || Config::getErrorLog()
+				? error_log(date(DATE_W3C)." {$message}\n",3,(Config::getDebugLog() ?: Config::getErrorLog()))
+				: error_log($message);
+		}
 		public static function debug ($mixed, $title=null, $options=null) {
 			$options = is_array($options) ? $options : explode(',',$options);
 			$exit = in_array('exit',$options);
@@ -146,6 +162,24 @@ namespace bueno {
 			if ($exit) {
 				exit;
 			}
+		}
+		public static function makeSafe ($value=null, $options=null, $charset=null) {
+			if (is_array($value)) {
+				foreach ($value as $k=>$v)
+					$value[$k] = self::makeSafe($v,$options,$charset);
+				return $value;
+			} else if (is_object($value)) {
+				foreach ($value as $k=>$v)
+					$value->{$k} = self::makeSafe($v,$options,$charset);
+				return $value;
+			} else if (is_null($value) || is_bool($value)) {
+				return $value;
+			} else {
+				return htmlentities(trim($value),$options,$charset);
+			}
+		}
+		public static function makeSafeForXml ($value=null) {
+			return self::makeSafe($value,ENT_XML1 | ENT_QUOTES,'UTF-8');
 		}
 		public static function setValue ($needle, &$haystack, $value=null) {
 			if ($needle===null || !is_scalar($needle))
@@ -197,22 +231,6 @@ namespace bueno {
 			if (is_object($haystack))
 				return ($values = array_intersect_key(get_object_vars($haystack),array_flip(preg_grep($pattern,array_keys(get_object_vars($haystack)))))) ? $values : $default;
 			throw new InvalidException('haystack',$haystack,array('array','object','null'));
-		}
-		public static function logError ($message) {
-			if ($message instanceof Exception)
-				$message = $message->format('log');
-			Config::getErrorLog()
-				? error_log(date(DATE_W3C)." {$message}\n",3,Config::getErrorLog())
-				: error_log($message);
-		}
-		public static function logDebug ($message) {
-			if (!Config::isDebug())
-				return null;
-			if ($message instanceof Exception)
-				$message = $message->format('log');
-			return Config::getDebugLog() || Config::getErrorLog()
-				? error_log(date(DATE_W3C)." {$message}\n",3,(Config::getDebugLog() ?: Config::getErrorLog()))
-				: error_log($message);
 		}
 	}
 
@@ -772,34 +790,19 @@ namespace bueno {
 	}
 
 	trait SuperGlobals {
-		protected static function makeSafe ($value) {
-			if (is_array($value)) {
-				foreach ($value as $k=>$v)
-					$value[$k] = self::makeSafe($v);
-				return $value;
-			} else if (is_object($value)) {
-				foreach ($value as $k=>$v)
-					$value->{$k} = self::makeSafe($v);
-				return $value;
-			} else if (is_null($value) || is_bool($value)) {
-				return $value;
-			} else {
-				return htmlentities(trim($value),ENT_NOQUOTES);
-			}
-		}
 		protected static function getGet ($name, $default=null, $emptyToDefault=true, $makeSafe=true) {
 			return (($value = self::getValue($name,$_GET,$default,$emptyToDefault)) && $makeSafe && $value!=$default)
-				? self::makeSafe($value)
+				? BuenoClass::makeSafe($value,ENT_NOQUOTES)
 				: $value;
 		}
 		protected static function getPost ($name, $default=null, $emptyToDefault=true, $makeSafe=true) {
 			return (($value = self::getValue($name,$_POST,$default,$emptyToDefault)) && $makeSafe && $value!=$default)
-				? self::makeSafe($value)
+				? BuenoClass::makeSafe($value,ENT_NOQUOTES)
 				: $value;
 		}
 		protected static function getRequest ($name, $default=null, $emptyToDefault=true, $makeSafe=true) {
 			return (($value = self::getValue($name,$_REQUEST,$default,$emptyToDefault)) && $makeSafe && $value!=$default)
-				? self::makeSafe($value)
+				? BuenoClass::makeSafe($value,ENT_NOQUOTES)
 				: $value;
 		}
 		protected static function getSession ($name, $default=null, $autoStart=true) {
