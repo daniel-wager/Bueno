@@ -112,7 +112,7 @@ namespace bueno {
 			if ($message instanceof Exception)
 				$message = $message->format('log');
 			Config::getErrorLog()
-				? error_log(date(DATE_W3C)." {$message}\n",3,Config::getErrorLog())
+				? error_log(Config::getLogPrefix().date(DATE_W3C).' [ERROR] '.$message.PHP_EOL,3,Config::getErrorLog())
 				: error_log($message);
 		}
 		public static function logDebug ($message) {
@@ -121,7 +121,7 @@ namespace bueno {
 			if ($message instanceof Exception)
 				$message = $message->format('log');
 			return Config::getDebugLog() || Config::getErrorLog()
-				? error_log(date(DATE_W3C)." {$message}\n",3,(Config::getDebugLog() ?: Config::getErrorLog()))
+				? error_log(Config::getLogPrefix().date(DATE_W3C).' [DEBUG] '.$message.PHP_EOL,3,(Config::getDebugLog() ?: Config::getErrorLog()))
 				: error_log($message);
 		}
 		public static function debug ($mixed, $title=null, $options=null) {
@@ -495,6 +495,7 @@ namespace bueno {
 		private static $stage = false;
 		private static $cli = false;
 		private static $showErrorAsHtml = true;
+		private static $logPrefix = null;
 		private static $init = false;
 		public static function init () {
 			if (!self::$init) {
@@ -527,6 +528,15 @@ namespace bueno {
 				self::$defaultNamespace = $namespace;
 			}
 			return true;
+		}
+		public static function setLogPrefix ($x=null) {
+			if ($x!==null && !is_string($x))
+				throw new InvalidArgumentException("logPrefix");
+			self::$logPrefix = $x;
+			return true;
+		}
+		public static function getLogPrefix () {
+			return self::$logPrefix;
 		}
 		public static function addNamespace ($namespace, $path, $default=false) {
 			foreach (self::$typeNamespacePathMap as $k=>$v)
