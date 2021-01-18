@@ -210,10 +210,8 @@ namespace bueno {
 				self::debug($needle,__METHOD__.'['.__LINE__.']::'.($needle?'Invalid':'Missing').' needle','log,trace,export');
 				throw new InvalidException('needle',$needle,'scalar');
 			}
-			if (is_scalar($haystack)) {
-				self::debug($haystack,__METHOD__.'['.__LINE__.']::'.($haystack?'Invalid':'Missing').' haystack','log,trace,export');
-				throw new InvalidException('haystack',$haystack,array('array','object','null'));
-			}
+			if (is_scalar($haystack))
+				throw new InvalidException('haystack',gettype($haystack),array('array','object','null'));
 			$value = is_array($haystack)
 					? (isset($haystack[$needle]) ? $haystack[$needle] : $default)
 					: (isset($haystack->{$needle}) ? $haystack->{$needle} : $default);
@@ -492,6 +490,7 @@ namespace bueno {
 		private static $requestReturnType = 'html';
 		private static $debug = false;
 		private static $dev = false;
+		private static $qa = false;
 		private static $stage = false;
 		private static $cli = false;
 		private static $showErrorAsHtml = true;
@@ -501,8 +500,9 @@ namespace bueno {
 			if (!self::$init) {
 				self::$cli = PHP_SAPI=='cli';
 				self::setTimeZone(date_default_timezone_get());
-				self::setStage(self::getValue('SERVER_IS_STAGE',$_SERVER,(getenv('SERVER_IS_STAGE')?true:false),true));
-				self::setDev(self::getValue('SERVER_IS_DEV',$_SERVER,(getenv('SERVER_IS_DEV')?true:false),true));
+				self::setDev(self::getValue('BUENO_SERVER_IS_DEV',$_SERVER,(getenv('BUENO_SERVER_IS_DEV')?true:false),true));
+				self::setQa(self::getValue('BUENO_SERVER_IS_QA',$_SERVER,(getenv('BUENO_SERVER_IS_QA')?true:false),true));
+				self::setStage(self::getValue('BUENO_SERVER_IS_STAGE',$_SERVER,(getenv('BUENO_SERVER_IS_STAGE')?true:false),true));
 				self::setDebug((self::isDev() || in_array('--debug',self::getValue('argv',$_SERVER,[]))));
 				self::addNamespace('bueno',__DIR__,false);
 				self::setRequestBase(self::getValue('SCRIPT_NAME',$_SERVER));
@@ -587,6 +587,10 @@ namespace bueno {
 			self::$dev = (bool) $dev;
 			return true;
 		}
+		public static function setQa ($x=false) {
+			self::$qa = (bool) $x;
+			return true;
+		}
 		public static function setStage ($stage=false) {
 			self::$stage = (bool) $stage;
 			return true;
@@ -659,6 +663,9 @@ namespace bueno {
 		}
 		public static function isDev () {
 			return self::$dev;
+		}
+		public static function isQa () {
+			return self::$qa;
 		}
 		public static function isStage () {
 			return self::$stage;
